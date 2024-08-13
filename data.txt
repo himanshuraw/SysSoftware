@@ -1,0 +1,6 @@
+Hello!!
+This is the data file.
+It consist of random lines in it.
+Like these written below:
+I think this will be enough.
+Ok Bye!!
