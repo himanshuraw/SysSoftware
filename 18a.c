@@ -23,6 +23,10 @@ int main(int argc, char** argv){
 	printf("Which record you want to write in: ");
 	int index;
 	scanf("%d", &index);
+	if(index > 3){
+		printf("Enter record less than equal to 3");
+		return -1;
+	}
 	printf("Waiting...\n");
 
 	lseek(fd, (index-1)*sizeof(record), SEEK_SET);
@@ -41,7 +45,7 @@ int main(int argc, char** argv){
 	record.data = number;
 	int count = write(fd, &record, sizeof(record));
         if(count == -1){
-                perror("Error in reading");
+                perror("Error in writing");
                 close(fd);
                 return -1;
         }
