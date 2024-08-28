@@ -4,39 +4,36 @@
 
 using namespace std;
 
-int main(int argc, char** argv){
-	
+int main(int argc,char** argv){
 	if(argc < 2){
 		cerr<<"Provide more arguments"<<endl;
 		return -1;
 	}
-	
-	struct flock rdlock;
-	rdlock.l_type = F_RDLCK;	
 
-	int fd = open(argv[1], O_RDONLY);
+	struct flock wrlock;
+	wrlock.l_type = F_WRLCK;
 
-	cout<<"Trying to aquire the lock"<<endl;
+	int fd = open(argv[1], O_WRONLY);
 
-	int flag = fcntl(fd, F_SETLKW, &rdlock);
+	cout<<"Trying to aquire lock"<<endl;
+	int flag = fcntl(fd, F_SETLKW, &wrlock);
 	if(flag == -1){
 		cout<<"Error occurred"<<endl;
 		close(fd);
 		return -1;
 	}
-	cout<<"Acquired Read lock"<<endl
+	cout<<"Acquired Write lock"<<endl
 		<<"Enter a character to release the lock"<<endl;
 	getchar();
 
 	cout<<"Releasing the lock"<<endl;
-	rdlock.l_type = F_UNLCK;
-	flag = fcntl(fd, F_SETLK, &rdlock);
-
+	wrlock.l_type = F_UNLCK;
+	flag = fcntl(fd, F_SETLK, &wrlock);
 	if(flag == -1){
                 cout<<"Error occurred"<<endl;
                 close(fd);
                 return -1;
         }
-	
+	cout<<"Done";
 	close(fd);
 }
