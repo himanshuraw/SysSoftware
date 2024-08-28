@@ -12,7 +12,7 @@ int main(int argc, char** argv){
 		return -1;
 	}
 
-	int fd = open(argv[1], O_CREAT | O_WRONLY, 0777);
+	int fd = open(argv[1], O_WRONLY, 0777);
 	if(fd == -1){
 		perror("Error in opening File");
 		return -1;
