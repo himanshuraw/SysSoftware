@@ -1,6 +1,6 @@
 #include<stdio.h>
-#include<unistd.h>
 
-int main(){
-	execl("/home/himanshu-rawat/Documents/SysSoftware/a.out","./a.out", NULL); 
+int main(int argc, char** argv){
+	printf("%s\n", argv[1]);
 }
+
