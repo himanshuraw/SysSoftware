@@ -1,18 +1,21 @@
 #include<stdio.h>
 #include<unistd.h>
-#include<time.h>
+#include<sys/time.h>
+
+unsigned long long rdtsc(){
+	unsigned long long dst;
+	__asm__ __volatile__("rdtsc":"=A" (dst));
+}
 
 int main(){
-        struct timespec start, end;
+        unsigned long long int start, end;
 
-        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
+        start = rdtsc();
         int getpid();
-        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
+        end = rdtsc();
 
-        double timeTaken =
-                (end.tv_sec - start.tv_sec)*1000000000 
-                + (end.tv_nsec - start.tv_nsec);
+        unsigned long long int timeTaken = (end - start)/2.4;
         
-        printf("Time taken for execution: %f nanoseconds\n",timeTaken);
+        printf("Time taken for execution: %lld nanoseconds\n",timeTaken);
 }
 
