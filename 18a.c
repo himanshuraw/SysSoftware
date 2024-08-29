@@ -1,3 +1,15 @@
+/*
+========================================================================================================
+
+Name: 18a
+Author: Himanshu Rawat
+Description: Write a program to perform Record locking.
+		a. Implement write lock
+Date: 28th August, 2024
+
+========================================================================================================
+*/
+
 #include<stdio.h>
 #include<fcntl.h>
 #include<unistd.h>
@@ -56,3 +68,23 @@ int main(int argc, char** argv){
 
 	close(fd);
 }
+
+/*
+========================================================================================================
+Output:
+
+Terminal 1:
+./write File.txt
+Which record you want to write in: 2
+Waiting...
+Enter a number to write in the record: 54
+Record set correctly
+
+Terminal 2:
+./write File.txt
+Which record you want to write in: 2
+Waiting...
+
+========================================================================================================
+*/
+

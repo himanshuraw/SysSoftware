@@ -1,3 +1,14 @@
+/*
+========================================================================================================
+
+Name: 4
+Author: Himanshu Rawat
+Description: Write a program to open an existing file with read write mode. Try O_EXCL flag also.
+Date: 13th August, 2024
+
+========================================================================================================
+*/
+
 #include<iostream>
 #include<fcntl.h>
 #include<unistd.h>
@@ -22,3 +33,13 @@ int  main(int argc, char** argv){
 		cout<< "Unable to open the file in fd2"<< endl;
 	}	
 }
+
+/*
+========================================================================================================
+Output:
+
+./a.out data.txt
+Successfully opened in readwrite mode
+Unable to open the file in fd2
+
+========================================================================================================

@@ -1,3 +1,17 @@
+/*
+========================================================================================================
+
+Name: 17
+Author: Himanshu Rawat
+Description: Write a program to simulate online ticket reservation. Implement write lock
+Write a program to open a file, store a ticket number and exit. Write a separate program, to
+open the file, implement write lock, read the ticket number, increment the number and print
+the new ticket number then close the file.
+Date: 27th August, 2024
+
+========================================================================================================
+*/
+
 #include<stdio.h>
 #include<fcntl.h>
 #include<unistd.h>
@@ -64,3 +78,23 @@ int main(int argc, char** argv){
 	}
 	close(fd);
 }
+
+/*
+========================================================================================================
+Output:
+
+Terminal 1:
+./a.out t.txt 
+Ticket number (Before): 1
+Waiting...
+Ticket number (After): 2
+Press a key to finish
+
+Terminal 2:
+./a.out t.txt
+Ticket number (Before): 2
+Waiting...
+
+========================================================================================================
+*/
+

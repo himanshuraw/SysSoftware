@@ -1,3 +1,14 @@
+/*
+========================================================================================================
+
+Name: 8
+Author: Himanshu Rawat
+Description: Write a program to open a file in read only mode, read line by line and display each line as it is read.Close the file when end of file is reached.
+Date: 13th August, 2024
+
+========================================================================================================
+*/
+
 #include<iostream>
 #include<fcntl.h>
 #include<unistd.h>
@@ -33,3 +44,19 @@ int main(int argc, char** argv){
 	}
 	close(input);
 }
+
+/*
+========================================================================================================
+Output:
+
+./a.out data.txt 
+This is a data file
+It consists of random lines.
+Like these written below:
+Hmmmm...
+I think this will be enough.
+Ok Bye!!
+
+========================================================================================================
+*/
+

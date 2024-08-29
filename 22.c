@@ -1,3 +1,15 @@
+/*
+========================================================================================================
+
+Name: 22
+Author: Himanshu Rawat
+Description: Write a program, open a file, call fork, and then write to the file by both the child as well as the
+parent processes. Check output of the file.
+Date: 28th August, 2024
+
+========================================================================================================
+*/
+
 #include<stdio.h>
 #include<unistd.h>
 #include<fcntl.h>
@@ -20,6 +32,21 @@ int main(int argc, char** argv){
 	if(cnt == -1){
 		perror("Error in writing");
 	}
-	printf("Finished printing");
+	printf("Finished printing\n");
 	close(fd);
 }
+
+/*
+========================================================================================================
+Output:
+
+ ./a.out text.txt
+Finished printing
+Finished printing
+
+In text.txt:
+datadata
+
+========================================================================================================
+*/
+

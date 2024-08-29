@@ -1,6 +1,5 @@
-Hello!!
-This is a data file.
-It consist of random lines in it.
+This is a data file
+It consists of random lines.
 Like these written below:
 Hmmmm...
 I think this will be enough.

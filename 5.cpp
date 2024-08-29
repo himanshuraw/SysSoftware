@@ -1,3 +1,16 @@
+/*
+========================================================================================================
+
+Name: 5
+Author: Himanshu Rawat
+Description: Write a program to create five new files with infinite loop. Execute the program in the background
+and check the file descriptor table at /proc/pid/fd.
+Date: 13th August, 2024
+
+========================================================================================================
+*/
+
+
 #include<fcntl.h>
 #include<string>
 

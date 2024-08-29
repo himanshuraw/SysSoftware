@@ -1,3 +1,14 @@
+/*
+========================================================================================================
+
+Name: 20
+Author: Himanshu Rawat
+Description: Find out the priority of your running program. Modify the priority with nice command.
+Date: 28th August, 2024
+
+========================================================================================================
+*/
+
 #include<stdio.h>
 #include<unistd.h>
 #include<sys/resource.h>
@@ -19,3 +30,15 @@ int main(){
         }
         printf("Priority of currect process after using nice is : %d\n", priority);
 }
+
+/*
+========================================================================================================
+Output:
+
+./a.out
+Priority of currect process is : 0
+Priority of currect process after using nice is : 1
+
+========================================================================================================
+*/
+

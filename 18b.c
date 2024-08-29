@@ -1,3 +1,15 @@
+/*
+========================================================================================================
+
+Name: 18b
+Author: Himanshu Rawat
+Description: Write a program to perform Record locking.
+		b. Implement read lock
+Date: 28th August, 2024
+
+========================================================================================================
+*/
+
 #include<stdio.h>
 #include<fcntl.h>
 #include<unistd.h>
@@ -46,3 +58,26 @@ int main(int argc, char** argv){
 
 	close(fd);
 }
+
+/*
+========================================================================================================
+Output:
+
+Terminal 1:
+./read File.txt 
+Which record you want to read from: 2
+Waiting...
+Data in record: 54
+Press key to exit
+
+Terminal 2:
+./read File.txt
+Which record you want to read from: 2
+Waiting...
+Data in record: 54
+Press key to exit
+
+
+========================================================================================================
+*/
+

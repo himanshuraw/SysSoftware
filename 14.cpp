@@ -1,3 +1,16 @@
+/*
+========================================================================================================
+
+Name: 14a and 14b
+Author: Himanshu Rawat
+Description: Write a program to find the type of a file.
+		a. Input should be taken from command line.
+		b. program should be able to identify any type of a file.
+Date: 22th August, 2024
+
+========================================================================================================
+*/
+
 #include<iostream>
 #include<sys/stat.h>
 using namespace std;
@@ -28,3 +41,14 @@ int main(int argc, char** argv){
 		default: cout<<"Unknown"<<endl; break;
 	}
 }
+
+/*
+========================================================================================================
+Output:
+
+./a.out 10.cpp
+File type: Regular File
+
+========================================================================================================
+*/
+

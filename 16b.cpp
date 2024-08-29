@@ -1,3 +1,15 @@
+/*
+========================================================================================================
+
+Name: 16b
+Author: Himanshu Rawat
+Description: Write a program to perform mandatory locking.
+		b. Implement read lock
+Date: 24th August, 2024
+
+========================================================================================================
+*/
+
 #include<iostream>
 #include<fcntl.h>
 #include<unistd.h>
@@ -40,3 +52,21 @@ int main(int argc, char** argv){
 	
 	close(fd);
 }
+
+/*
+========================================================================================================
+Output:
+
+Terminal 1:
+./a.out info.txt
+Trying to aquire the lock
+Acquired Read lock
+Enter a character to release the lock
+
+Terminal 2:
+./a.out info.txt
+Trying to aquire lock
+
+========================================================================================================
+*/
+

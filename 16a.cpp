@@ -1,3 +1,15 @@
+/*
+========================================================================================================
+
+Name: 16a
+Author: Himanshu Rawat
+Description: Write a program to perform mandatory locking.
+		a. Implement write lock
+Date: 24th August, 2024
+
+========================================================================================================
+*/
+
 #include<iostream>
 #include<fcntl.h>
 #include<unistd.h>
@@ -37,3 +49,24 @@ int main(int argc,char** argv){
 	cout<<"Done";
 	close(fd);
 }
+
+/*
+========================================================================================================
+Output:
+
+Terminal 1:
+./a.out info.txt
+Trying to aquire lock
+Acquired Write lock
+Enter a character to release the lock
+
+Releasing the lock
+Done
+
+Terminal 2:
+./a.out info.txt
+Trying to aquire lock
+
+========================================================================================================
+*/
+
