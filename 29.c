@@ -1,3 +1,15 @@
+/*
+========================================================================================================
+
+Name: 29
+Author: Himanshu Rawat
+Description: Write a program to get scheduling policy and modify the scheduling policy (SCHED_FIFO,
+SCHED_RR).
+Date: 29th August, 2024
+
+========================================================================================================
+*/
+
 #include<stdio.h>
 #include<sched.h>
 #include<unistd.h>
@@ -27,7 +39,6 @@ int main(){
 	printf("Select the number to change the policy:\n");
 	printf("1: SCHED_FIFO\n");
 	printf("2: SCHED_RR\n");
-	printf("3: SCHED_OTHER\n");
 	
 	int choice;
 	scanf("%d", &choice);
@@ -47,14 +58,6 @@ int main(){
                         s.sched_priority = 99;
                         value = sched_setscheduler(pid, SCHED_RR, &s);
 			if(value == -1){
-                                perror("Error while setting policy");
-                                return -1;
-                        }
-                        break;
-		case 3:
-                        s.sched_priority = 0;
-                        value = sched_setscheduler(pid, SCHED_OTHER, &s);
-                        if(value == -1){
                                 perror("Error while setting policy");
                                 return -1;
                         }
@@ -85,3 +88,19 @@ int main(){
                         break;
         }
 }
+
+/*
+========================================================================================================
+Output:
+
+sudo ./a.out 
+
+SCHED_OTHER
+Select the number to change the policy:
+1: SCHED_FIFO
+2: SCHED_RR
+1
+SCHED_FIFO
+
+========================================================================================================
+ */
