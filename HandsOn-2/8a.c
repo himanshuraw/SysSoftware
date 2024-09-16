@@ -19,12 +19,12 @@ void sigsegv_handler(int signo) {
 
 void trigger_segfault() {
     int *ptr = NULL;
-    *ptr = 42;  // Dereferencing a NULL pointer triggers SIGSEGV
+    *ptr = 42; 
 }
 
 int main() {
-    signal(SIGSEGV, sigsegv_handler);  // Register handler for SIGSEGV
-    trigger_segfault();  // Trigger segmentation fault
+    signal(SIGSEGV, sigsegv_handler);
+    trigger_segfault();
     return 0;
 }
 
