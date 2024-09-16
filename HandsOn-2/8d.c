@@ -1,9 +1,9 @@
 /*
 ========================================================================================================
-Name : 8a
+Name : 8d
 Author : Himanshu Rawat
 Description : Write a separate program using signal system call to catch the following signals.
-		a. SIGSEGV
+		d. SIGALRM(use alarm system call)
 Date: 16 Sept, 2024.
 ========================================================================================================
 */
@@ -11,31 +11,25 @@ Date: 16 Sept, 2024.
 #include<stdio.h>
 #include<signal.h>
 #include<stdlib.h>
+#include<unistd.h>
 
-void sigsegv_handler(int signo) {
-    printf("Caught SIGSEGV (Segmentation fault)\n");
-    exit(1);
-}
-
-void trigger_segfault() {
-    int *ptr = NULL;
-    *ptr = 42; 
+void sigalrm_handler(int signo) {
+    printf("Caught SIGALRM (Alarm signal)\n");
 }
 
 int main() {
-    signal(SIGSEGV, sigsegv_handler);
-    trigger_segfault();
+    signal(SIGALRM, sigalrm_handler);
+    alarm(2);
+    pause();
 }
-
 
 /*
 ========================================================================================================
 Output:
 
 ./a.out
-Caught SIGSEGV (Segmentation fault)
+Caught SIGALRM (Alarm signal)
 
 ========================================================================================================
 */
-
 

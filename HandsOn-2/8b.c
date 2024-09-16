@@ -8,9 +8,9 @@ Date: 16 Sept, 2024.
 ========================================================================================================
 */
 
-#include <stdio.h>
-#include <signal.h>
-#include <stdlib.h>
+#include<stdio.h>
+#include<signal.h>
+#include<stdlib.h>
 
 void sigint_handler(int signo) {
     printf("\nCaught SIGINT (Interrupt signal)\n");

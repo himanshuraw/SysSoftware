@@ -1,9 +1,9 @@
 /*
 ========================================================================================================
-Name : 8a
+Name : 8c
 Author : Himanshu Rawat
 Description : Write a separate program using signal system call to catch the following signals.
-		a. SIGSEGV
+		c. SIGFPE
 Date: 16 Sept, 2024.
 ========================================================================================================
 */
@@ -12,30 +12,23 @@ Date: 16 Sept, 2024.
 #include<signal.h>
 #include<stdlib.h>
 
-void sigsegv_handler(int signo) {
-    printf("Caught SIGSEGV (Segmentation fault)\n");
+void sigfpe_handler(int signo) {
+    printf("Caught SIGFPE (Floating-point exception)\n");
     exit(1);
 }
 
-void trigger_segfault() {
-    int *ptr = NULL;
-    *ptr = 42; 
-}
-
 int main() {
-    signal(SIGSEGV, sigsegv_handler);
-    trigger_segfault();
+    signal(SIGFPE, sigfpe_handler);
+    int x = 1 / 0; 
 }
-
 
 /*
 ========================================================================================================
 Output:
 
 ./a.out
-Caught SIGSEGV (Segmentation fault)
+Caught SIGFPE (Floating-point exception)
 
 ========================================================================================================
 */
-
 
