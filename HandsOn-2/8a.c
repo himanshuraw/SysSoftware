@@ -25,7 +25,6 @@ void trigger_segfault() {
 int main() {
     signal(SIGSEGV, sigsegv_handler);
     trigger_segfault();
-    return 0;
 }
 
 
