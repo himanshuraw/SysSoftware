@@ -13,14 +13,14 @@ Date: 16 Sept, 2024.
 #include<stdlib.h>
 
 void sigint_handler(int signo) {
-    printf("\nCaught SIGINT (Interrupt signal)\n");
-    exit(1);
+	printf("\nCaught SIGINT (Interrupt signal)\n");
+	exit(1);
 }
 
 int main() {
-    signal(SIGINT, sigint_handler);
-    printf("Press Ctrl+C to trigger SIGINT...\n");
-    while (1);
+	signal(SIGINT, sigint_handler);
+	printf("Press Ctrl+C to trigger SIGINT...\n");
+	while (1);
 }
 
 /*

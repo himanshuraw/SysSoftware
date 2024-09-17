@@ -13,20 +13,20 @@ Date: 16 Sept, 2024.
 #include <signal.h>
 
 void sigsegv_handler(int signo) {
-    printf("Caught SIGSEGV (Segmentation fault)\n");
-    exit(1);
+       	printf("Caught SIGSEGV (Segmentation fault)\n");
+    	exit(1);
 }
 
 int main() {
-    struct sigaction sa;
-    sa.sa_handler = sigsegv_handler;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
+	struct sigaction sa;
+    	sa.sa_handler = sigsegv_handler;
+    	sigemptyset(&sa.sa_mask);
+    	sa.sa_flags = 0;
 
-    sigaction(SIGSEGV, &sa, NULL);
-
-    int *ptr = NULL;
-    *ptr = 42; 
+    	sigaction(SIGSEGV, &sa, NULL);
+	
+	int *ptr = NULL;
+    	*ptr = 42; 
 
 }
 

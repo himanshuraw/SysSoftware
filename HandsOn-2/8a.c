@@ -13,18 +13,18 @@ Date: 16 Sept, 2024.
 #include<stdlib.h>
 
 void sigsegv_handler(int signo) {
-    printf("Caught SIGSEGV (Segmentation fault)\n");
-    exit(1);
+	printf("Caught SIGSEGV (Segmentation fault)\n");
+	exit(1);
 }
 
 void trigger_segfault() {
-    int *ptr = NULL;
-    *ptr = 42; 
+	int *ptr = NULL;
+	*ptr = 42; 
 }
 
 int main() {
-    signal(SIGSEGV, sigsegv_handler);
-    trigger_segfault();
+    	signal(SIGSEGV, sigsegv_handler);
+    	trigger_segfault();
 }
 
 

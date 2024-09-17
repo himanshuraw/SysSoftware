@@ -13,13 +13,13 @@ Date: 16 Sept, 2024.
 #include<stdlib.h>
 
 void sigfpe_handler(int signo) {
-    printf("Caught SIGFPE (Floating-point exception)\n");
-    exit(1);
+	printf("Caught SIGFPE (Floating-point exception)\n");
+	exit(1);
 }
 
 int main() {
-    signal(SIGFPE, sigfpe_handler);
-    int x = 1 / 0; 
+	signal(SIGFPE, sigfpe_handler);
+	int x = 1 / 0; 
 }
 
 /*

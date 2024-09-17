@@ -19,16 +19,16 @@ void sigalrm_handler(int signo) {
 }
 
 int main() {
-    signal(SIGALRM, sigalrm_handler);
+	signal(SIGALRM, sigalrm_handler);
     
-    struct itimerval timer;
-    timer.it_value.tv_sec = 2;
-    timer.it_value.tv_usec = 0;
-    timer.it_interval.tv_sec = 0;
-    timer.it_interval.tv_usec = 0;
-    setitimer(ITIMER_REAL, &timer, NULL);
-
-    pause();
+	struct itimerval timer;
+	timer.it_value.tv_sec = 2;
+	timer.it_value.tv_usec = 0;
+	timer.it_interval.tv_sec = 0;
+	timer.it_interval.tv_usec = 0;
+	setitimer(ITIMER_REAL, &timer, NULL);
+	
+	pause();
 }
 
 /*

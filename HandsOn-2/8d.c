@@ -14,13 +14,13 @@ Date: 16 Sept, 2024.
 #include<unistd.h>
 
 void sigalrm_handler(int signo) {
-    printf("Caught SIGALRM (Alarm signal)\n");
+	printf("Caught SIGALRM (Alarm signal)\n");
 }
 
 int main() {
-    signal(SIGALRM, sigalrm_handler);
-    alarm(2);
-    pause();
+	signal(SIGALRM, sigalrm_handler);
+	alarm(2);
+	pause();
 }
 
 /*

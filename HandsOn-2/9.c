@@ -13,20 +13,20 @@ Date: 16 Sept, 2024.
 #include <unistd.h>
 
 void restore_default_action(int signo) {
-    printf("SIGINT caught. Resetting to default action.\n");
-    signal(SIGINT, SIG_DFL);
+	printf("SIGINT caught. Resetting to default action.\n");
+	signal(SIGINT, SIG_DFL);
 }
 
 int main() {
-    signal(SIGINT, SIG_IGN);
-    printf("SIGINT is ignore.\n");
-    sleep(10);
+	signal(SIGINT, SIG_IGN);
+	printf("SIGINT is ignore.\n");
+	sleep(10);
 
-    printf("\nResetting SIGINT to default action.\n");
-    signal(SIGINT, restore_default_action); 
+	printf("\nResetting SIGINT to default action.\n");
+	signal(SIGINT, restore_default_action); 
 
-    sleep(10);
-    printf("Program is ending normally. If you pressed Ctrl+C before, it was caught.\n");
+	sleep(10);
+	printf("Program is ending normally. If you pressed Ctrl+C before, it was caught.\n");
 
 }
 

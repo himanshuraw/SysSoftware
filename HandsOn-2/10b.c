@@ -14,22 +14,22 @@ Date: 17 Sept, 2024.
 #include<unistd.h>
 
 void sigint_handler(int signo) {
-    printf("Caught SIGINT (Interrupt signal)\n");
-    exit(1);
+	printf("Caught SIGINT (Interrupt signal)\n");
+	exit(1);
 }
 
 int main() {
-    struct sigaction sa;
-    sa.sa_handler = sigint_handler;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
+	struct sigaction sa;
+	sa.sa_handler = sigint_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
 
-    sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGINT, &sa, NULL);
 
-    printf("Press Ctrl+C to trigger SIGINT...\n");
-    while (1) {
-        pause();
-    }
+	printf("Press Ctrl+C to trigger SIGINT...\n");
+	while (1) {
+		pause();
+	}
 }
 
 /*
