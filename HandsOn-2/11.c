@@ -1,9 +1,8 @@
 /*
 ========================================================================================================
-Name : 9
+Name : 11
 Author : Himanshu Rawat
-Description : Write a program to ignore a SIGINT signal then reset the default action of the SIGINT
-signal - Use sigaction system call.
+Description : Write a program to ignore a SIGINT signal then reset the default action of the SIGINT signal - Use sigaction system call.
 Date: 17 Sept, 2024.
 ========================================================================================================
 */

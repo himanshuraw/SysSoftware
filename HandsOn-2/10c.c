@@ -1,9 +1,9 @@
 /*
 ========================================================================================================
-Name : 10a
+Name : 10c
 Author : Himanshu Rawat
 Description : Write a separate program using sigaction system call to catch the following signals.
-		a. SIGSEGV
+		a. SIGFPE
 Date: 16 Sept, 2024.
 ========================================================================================================
 */
