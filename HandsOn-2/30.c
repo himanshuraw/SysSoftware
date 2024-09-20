@@ -46,5 +46,11 @@ int main() {
 ========================================================================================================
 Output:
 
+./a.out
+Data written to shared memory: Writing to shared memory.
+Attached with O_RDONLY. Data: Writing to shared memory.
+Trying to overwrite in read-only mode...
+Segmentation fault (core dumped)
+
 ========================================================================================================
 */
