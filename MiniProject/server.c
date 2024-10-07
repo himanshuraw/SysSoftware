@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "Functions/customer.h"
+
 void connection_handler(int client_socket) {
     short choice;
     int read_bytes = read(client_socket, &choice, sizeof(choice));
@@ -14,24 +16,24 @@ void connection_handler(int client_socket) {
     }
     choice = ntohs(choice);
     printf("Here: %hd\n", choice);
-    // switch (choice) {
-    //     case 1:
-    //         customer_handler();
-    //         break;
-    //     case 2:
-    //         bankEmployee();
-    //         break;
-    //     case 3:
-    //         manager();
-    //         break;
-    //     case 4:
-    //         admin();
-    //         break;
+    switch (choice) {
+        case 1:
+            customer_handler();
+            break;
+        case 2:
+            bankEmployee();
+            break;
+        case 3:
+            manager();
+            break;
+        case 4:
+            admin();
+            break;
 
-    //     default:
-    //         base();
-    //         break;
-    // }
+        default:
+            base();
+            break;
+    }
 }
 
 int main() {

@@ -11,8 +11,8 @@ struct Customer {
     char username[NAME_SIZE + 5];
     char password[PASSWORD_SIZE];
 
-    bool is_active;
     int account_number;
+    bool is_active;
     long int balance;
     int transactions[MAX_TRANSACTIONS];
 };
