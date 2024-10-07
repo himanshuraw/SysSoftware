@@ -1,15 +1,16 @@
+#include "constants.h"
 #ifndef EMPLOYEE_RECORD
 #define EMPLOYEE_RECORD
 
 struct Employee {
     int id;
-    char name[30];
+    char name[NAME_SIZE];
     char gender;
     int age;
-    int type;  // 0: Bank employee, 1: Manager, 2: Admisitrator
+    // int type;  // 0: Bank employee, 1: Manager, 2: Admisitrator
 
-    char username[35];
-    char password[35];
+    char username[NAME_SIZE + 5];
+    char password[PASSWORD_SIZE];
 };
 
 #endif
