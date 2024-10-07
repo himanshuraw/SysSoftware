@@ -1,40 +1,19 @@
 #include <netinet/ip.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "Functions/administrator.h"
+#include "Functions/common.h"
 #include "Functions/customer.h"
+#include "Functions/employee.h"
+#include "Structures/constants.h"
 
-void connection_handler(int client_socket) {
-    short choice;
-    int read_bytes = read(client_socket, &choice, sizeof(choice));
-    if (read_bytes < 0) {
-        perror("Read\n");
-        return;
-    }
-    choice = ntohs(choice);
-    printf("Here: %hd\n", choice);
-    switch (choice) {
-        case 1:
-            customer_handler();
-            break;
-        case 2:
-            bankEmployee();
-            break;
-        case 3:
-            manager();
-            break;
-        case 4:
-            admin();
-            break;
-
-        default:
-            base();
-            break;
-    }
-}
+void connection_handler(int client_socket);
 
 int main() {
     int server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -74,10 +53,10 @@ int main() {
         }
 
         /*``````````` Forking Child for new process `````````````*/
-        printf("Connection accepted\n");
         if (fork() == 0) {
             close(server_socket);
             connection_handler(client_socket);
+            printf("Terminating connection");
             close(client_socket);
             _exit(0);
         }
@@ -86,4 +65,49 @@ int main() {
     }
 
     close(server_socket);
+}
+
+void connection_handler(int client_socket) {
+    printf("Client is connected to the server\n");
+
+    char read_buffer[1000], write_buffer[1000];
+    int read_bytes, write_bytes;
+    int choice;
+
+    write_bytes = write(client_socket, INITIAL_PROMPT, strlen(INITIAL_PROMPT));
+    if (write_bytes == -1) {
+        perror("Sending initial prompt");
+        return;
+    }
+    memset(read_buffer, 0, sizeof(read_buffer));
+
+    read_bytes = read(client_socket, &read_buffer, sizeof(read_buffer));
+    if (read_bytes == -1) {
+        perror("Read\n");
+        return;
+    }
+    if (read_bytes == 0) {
+        printf("No data from client");
+    }
+
+    choice = atoi(read_buffer);
+
+    switch (choice) {
+        case 1:
+            customer_handler(client_socket);
+            break;
+        case 2:
+            employee_handler(client_socket);
+            break;
+        // case 3:
+        //     manager_handler();
+        //     break;
+        case 4:
+            administrator_handler(client_socket);
+            break;
+
+        default:
+            error_handler();
+            break;
+    }
 }
