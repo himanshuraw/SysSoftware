@@ -3,7 +3,7 @@
 #define EMPLOYEE_RECORD
 
 struct Employee {
-    int id;
+    int id;  // 0 1 2 3 ...
     char name[NAME_SIZE];
     char gender;
     int age;
