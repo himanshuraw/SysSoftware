@@ -54,11 +54,6 @@ bool login_employee(int client_socket) {
     }
 
     off_t offset = lseek(file_fd, ID * sizeof(struct Employee), SEEK_SET);
-    if (offset == 0) {
-        write_bytes =
-            write(client_socket, INVALID_USERID, strlen(INVALID_USERID));
-        return false;
-    }
 
     struct flock lock;
     lock.l_type = F_RDLCK;
