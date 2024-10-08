@@ -17,7 +17,7 @@ bool login_administrator(int client_socket);
 int add_employee(int client_socket);
 
 bool administrator_handler(int client_socket) {
-    char read_buffer[1000], write_buffer[1000];  //, buffer[1000]
+    char read_buffer[1000], write_buffer[1000];
     int read_bytes, write_bytes;
     if (!login_administrator(client_socket)) {
         return false;
@@ -119,13 +119,13 @@ int add_employee(int client_socket) {
             new_employee.id = 0;
         } else {
             perror("opening employee.txt to add employee");
-            return false;
+            return -1;
         }
     } else {
-        int offset = lseek(employee_fd, -sizeof(struct Employee), SEEK_END);
+        off_t offset = lseek(employee_fd, -sizeof(struct Employee), SEEK_END);
         if (offset == -1) {
             perror("Seeking last employee");
-            return false;
+            return -1;
         }
         struct flock lock;
         lock.l_type = F_RDLCK;
@@ -137,13 +137,13 @@ int add_employee(int client_socket) {
         int lock_status = fcntl(employee_fd, F_SETLKW, &lock);
         if (lock_status == -1) {
             perror("Read lock on employee file\n");
-            return false;
+            return -1;
         }
 
         read_bytes = read(employee_fd, &prev_employee, sizeof(struct Employee));
         if (read_bytes == -1) {
             perror("Read from employee file");
-            return false;
+            return -1;
         }
 
         lock.l_type = F_UNLCK;
@@ -156,14 +156,14 @@ int add_employee(int client_socket) {
     write_bytes = write(client_socket, ASK_NAME, strlen(ASK_NAME));
     if (write_bytes == -1) {
         perror("Writing name while adding");
-        return false;
+        return -1;
     }
 
     memset(read_buffer, 0, sizeof(read_buffer));
     read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
     if (read_bytes == -1) {
         perror("Reading name while adding");
-        return false;
+        return -1;
     }
 
     strcpy(new_employee.name, read_buffer);
@@ -172,14 +172,14 @@ int add_employee(int client_socket) {
     write_bytes = write(client_socket, ASK_AGE, strlen(ASK_AGE));
     if (write_bytes == -1) {
         perror("Writing age while adding");
-        return false;
+        return -1;
     }
 
     memset(read_buffer, 0, sizeof(read_buffer));
     read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
     if (read_bytes == -1) {
         perror("Reading name while adding");
-        return false;
+        return -1;
     }
 
     int age = atoi(read_buffer);
@@ -189,14 +189,14 @@ int add_employee(int client_socket) {
     write_bytes = write(client_socket, ASK_GENDER, strlen(ASK_GENDER));
     if (write_bytes == -1) {
         perror("Writing gender while adding");
-        return false;
+        return -1;
     }
 
     memset(read_buffer, 0, sizeof(read_buffer));
     read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
     if (read_bytes == -1) {
         perror("Reading gender while adding");
-        return false;
+        return -1;
     }
 
     char gender = read_buffer[0];
@@ -207,7 +207,7 @@ int add_employee(int client_socket) {
         write_bytes =
             write(client_socket, INVALID_ENTRY, strlen(INVALID_ENTRY));
         read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
-        return false;
+        return -1;
     }
 
     // Username
@@ -225,12 +225,35 @@ int add_employee(int client_socket) {
     employee_fd = open(EMPLOYEE_FILE, O_CREAT | O_WRONLY | O_APPEND, 0777);
     if (employee_fd == -1) {
         perror("Opening employee file");
-        return false;
+        return -1;
     }
+
+    struct flock lock;
+    lock.l_type = F_WRLCK;
+    lock.l_whence = SEEK_END;
+    lock.l_start = 0;
+    lock.l_len = 0;
+    lock.l_pid = getpid();
+
+    int lock_status = fcntl(employee_fd, F_SETLKW, &lock);
+    if (lock_status == -1) {
+        perror("Write lock on employee file");
+        close(employee_fd);
+        return -1;
+    }
+
     write_bytes = write(employee_fd, &new_employee, sizeof(new_employee));
     if (write_bytes == -1) {
         perror("Adding new employee");
-        return false;
+        return -1;
+    }
+
+    lock.l_type = F_UNLCK;
+    lock_status = fcntl(employee_fd, F_SETLK, &lock);
+    if (lock_status == -1) {
+        perror("unlock write-lock from employee file");
+        close(employee_fd);
+        return -1;
     }
 
     close(employee_fd);
@@ -242,7 +265,7 @@ int add_employee(int client_socket) {
     write_bytes = write(client_socket, write_buffer, sizeof(write_buffer));
     if (write_bytes == -1) {
         perror("Writing to client about new employee");
-        return false;
+        return -1;
     }
 
     read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
