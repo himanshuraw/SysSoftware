@@ -44,7 +44,7 @@ bool login_customer(int client_socket) {
     memset(buffer, 0, sizeof(buffer));
     strcpy(buffer, read_buffer);
     strtok(buffer, "-");
-    ID = atoi(strtok(NULL, "-"));
+    ID = atoi(strtok(NULL, "-")) - 1;
 
     int file_fd = open(CUSTOMER_FILE, O_RDONLY);
     if (file_fd == -1) {
@@ -53,7 +53,7 @@ bool login_customer(int client_socket) {
     }
 
     off_t offset = lseek(file_fd, ID * sizeof(struct Customer), SEEK_SET);
-    if (offset == 0) {
+    if (offset == -1) {
         write_bytes =
             write(client_socket, INVALID_USERID, strlen(INVALID_USERID));
         return false;
