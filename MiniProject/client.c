@@ -23,7 +23,7 @@ int main() {
     // host's byte order -> network byte order
     address.sin_addr.s_addr = htonl(INADDR_ANY);
     address.sin_family = AF_INET;
-    address.sin_port = htons(8081);
+    address.sin_port = htons(3000);
 
     /*````````````````` Connenting to Server ```````````````````*/
     int connection =

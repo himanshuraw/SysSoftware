@@ -11,6 +11,7 @@
 #include "Functions/common.h"
 #include "Functions/customer.h"
 #include "Functions/employee.h"
+#include "Functions/manager.h"
 #include "Structures/constants.h"
 
 void connection_handler(int client_socket);
@@ -25,7 +26,7 @@ int main() {
     struct sockaddr_in server_address, client_address;
     server_address.sin_addr.s_addr = htonl(INADDR_ANY);
     server_address.sin_family = AF_INET;
-    server_address.sin_port = htons(8081);
+    server_address.sin_port = htons(3000);
 
     int bind_status = bind(server_socket, (struct sockaddr *)&server_address,
                            sizeof(server_address));
@@ -99,9 +100,9 @@ void connection_handler(int client_socket) {
         case 2:
             employee_handler(client_socket);
             break;
-        // case 3:
-        //     manager_handler();
-        //     break;
+        case 3:
+            manager_handler(client_socket);
+            break;
         case 4:
             administrator_handler(client_socket);
             break;
