@@ -5,11 +5,40 @@ struct Customer customer;
 
 bool customer_handler(int client_socket);
 bool login_customer(int client_socket);
+bool view_balance(int client_socket);
 
 bool customer_handler(int client_socket) {
-    if (login_customer(client_socket)) {
-        printf("working with customer\n");
+    char read_buffer[1000], write_buffer[1000];
+    int read_bytes, write_bytes;
+    if (!login_customer(client_socket)) {
+        return false;
     }
+    printf("working with customer\n");
+
+    while (true) {
+        write_bytes =
+            write(client_socket, CUSTOMER_MENU, strlen(CUSTOMER_MENU));
+        if (write_bytes == -1) {
+            perror("Writing customer menu\n");
+            return false;
+        }
+
+        read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
+        if (read_bytes == -1) {
+            perror("Reading choice from client\n");
+        }
+
+        int choice = atoi(read_buffer);
+        switch (choice) {
+            case 1:
+                view_balance(client_socket);
+                break;
+
+            default:
+                break;
+        }
+    }
+
     return true;
 }
 
@@ -114,4 +143,24 @@ bool login_customer(int client_socket) {
 
     return true;
 }
+
+bool view_balance(int client_socket) {
+    char read_buffer[1000], write_buffer[1000];
+    int read_bytes, write_bytes;
+
+    sprintf(write_buffer, "%s%f", BALANCE, customer.balance);
+    write_bytes = write(client_socket, write_buffer, sizeof(write_buffer));
+    if (write_bytes == -1) {
+        perror("Write Balance to client\n");
+        // close(customer_fd);
+        return false;
+    }
+    if (write_bytes == 0) {
+        printf("ok so what now\n");
+    }
+    read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
+
+    return true;
+}
+
 #endif
