@@ -13,8 +13,25 @@
 #ifndef COMMON
 #define COMMON
 
-void error_handler();
+bool exit_handler(int client_socket);
+bool logout(int client_socket);
 
-void error_handler() { printf("Invalid"); }
+bool logout(int client_socket) {
+    int write_bytes = write(client_socket, LOGOUT, strlen(LOGOUT));
+    if (write_bytes == -1) {
+        perror("Writing logout to client\n");
+        return false;
+    }
+    return true;
+}
+
+bool exit_handler(int client_socket) {
+    int write_bytes = write(client_socket, EXIT, strlen(EXIT));
+    if (write_bytes == -1) {
+        perror("Writing exit to client\n");
+        return false;
+    }
+    return true;
+}
 
 #endif
