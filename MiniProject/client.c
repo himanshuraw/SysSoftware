@@ -38,16 +38,16 @@ int main() {
 
     connection_handler(sock);
 
-    printf("Ending concection");
+    printf("Ending connection");
 
     close(sock);
 }
 
 void connection_handler(int socket) {
-    char read_buffer[1000], write_buffer[1000];
-    int read_bytes, write_bytes;
+    char read_buffer[1000], write_buffer[1000], buffer[1000];
+    int read_bytes = 1, write_bytes;
 
-    while (true) {
+    while (read_bytes) {
         memset(read_buffer, 0, sizeof(read_buffer));
         memset(write_buffer, 0, sizeof(write_buffer));
 
@@ -60,6 +60,12 @@ void connection_handler(int socket) {
             printf("Didn't receive anything from server\n");
             return;
         }
+        if (strchr(read_buffer, '$') != NULL) {
+            strncpy(buffer, read_buffer, sizeof(read_buffer) - 2);
+            printf("%s\n", buffer);
+            break;
+        }
+
         memset(write_buffer, 0, sizeof(write_buffer));
         printf("%s\n", read_buffer);
         scanf("%[^\n]%*c", write_buffer);
