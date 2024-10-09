@@ -8,6 +8,7 @@
 
 #include "../Structures/constants.h"
 #include "../Structures/employee.h"
+#include "common.h"
 
 #ifndef ADMINISTRATOR
 #define ADMINISTRATOR
@@ -44,7 +45,8 @@ bool administrator_handler(int client_socket) {
                 break;
 
             default:
-                break;
+                logout(client_socket);
+                return true;
         }
     }
 }

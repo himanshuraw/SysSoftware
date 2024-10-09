@@ -39,7 +39,8 @@ bool employee_handler(int client_socket) {
                 break;
 
             default:
-                break;
+                logout(client_socket);
+                return true;
         }
     }
 }
