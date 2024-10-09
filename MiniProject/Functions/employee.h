@@ -224,6 +224,10 @@ int add_customer(int client_socket) {
     new_customer.balance = balance;
 
     // Account number
+    // TODO: if DNE then create the file
+    // TODO: lseek.END == 0 --> accno = 1
+    // TODO: find prev and accno = prev+1
+    //     ! SEE TRANSACTION TO FILE
     int customer_fd = open(CUSTOMER_FILE, O_RDWR);
     if (customer_fd == -1) {
         if (errno == ENOENT) {
