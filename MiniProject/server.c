@@ -57,7 +57,7 @@ int main() {
         if (fork() == 0) {
             close(server_socket);
             connection_handler(client_socket);
-            printf("Terminating connection");
+            printf("Terminating connection\n");
             close(client_socket);
             _exit(0);
         }
@@ -77,18 +77,18 @@ void connection_handler(int client_socket) {
 
     write_bytes = write(client_socket, INITIAL_PROMPT, strlen(INITIAL_PROMPT));
     if (write_bytes == -1) {
-        perror("Sending initial prompt");
+        perror("Sending initial prompt\n");
         return;
     }
     memset(read_buffer, 0, sizeof(read_buffer));
 
     read_bytes = read(client_socket, &read_buffer, sizeof(read_buffer));
     if (read_bytes == -1) {
-        perror("Read\n");
+        perror("Reading choice\n");
         return;
     }
     if (read_bytes == 0) {
-        printf("No data from client");
+        printf("No data from client\n");
     }
 
     choice = atoi(read_buffer);
@@ -106,9 +106,8 @@ void connection_handler(int client_socket) {
         case 4:
             administrator_handler(client_socket);
             break;
-
         default:
-            error_handler();
+            exit_handler(client_socket);
             break;
     }
 }
