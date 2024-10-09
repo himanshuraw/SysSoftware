@@ -67,6 +67,9 @@
 
 #define USERNAME "Enter your username:"
 #define PASSWORD "Enter your password:"
+#define NEW_PASSWORD "Enter new password:"
+
+#define SUCCESS "Operation was successfull"
 
 #define ASK_NAME "Enter name:"
 #define ASK_GENDER "Enter gender:\nM: Male\nF: Female\nO: Others"
@@ -80,6 +83,7 @@
 #define BALANCE "Your account balance is: \u20B9"
 #define WITHDRAW_AMOUNT "Enter the amount you want to withdraw: "
 #define DEPOSIT_AMOUNT "Enter the amount you want to deposit: "
+#define TRANSFER_AMOUNT "Enter the amount you want to Transfer: "
 #define WHOM_TO_TRANSFER \
     "Enter the username to whom you want to transfer the funds"
 #define INSUFFICIENT_BALANCE \
@@ -92,6 +96,7 @@
 
 #define CUSTOMER_FILE "./Records/customer.txt"
 #define EMPLOYEE_FILE "./Records/employee.txt"
+#define TRANSACTION_FILE "./Records/transaction.txt"
 
 #define ADMINISTRATOR_USERNAME "Himanshu"
 #define ADMINISTRATOR_PASSWORD "10vrzSg43HfWI"  // 123456
