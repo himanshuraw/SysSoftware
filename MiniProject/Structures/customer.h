@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 #include "constants.h"
 #ifndef CUSTOMER_RECORD
 #define CUSTOMER_RECORD
@@ -14,6 +16,7 @@ struct Customer {
     bool is_active;
     float balance;
     int transactions[MAX_TRANSACTIONS];
+    int ptr;
 };
 
 #endif
