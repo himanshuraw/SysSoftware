@@ -1,6 +1,11 @@
 // #include <sys/ipc.h>
 // #include <sys/sem.h>
+#include <fcntl.h>
+#include <stdbool.h>
+#include <stdio.h>
 
+#include "../Structures/constants.h"
+#include "../Structures/customer.h"
 #include "../Structures/transaction.h"
 
 #ifndef CUSTOMER
@@ -16,8 +21,9 @@ bool change_balance(int client_socket, int id, float amount, int operation);
 bool deposit(int client_socket);
 bool withdraw(int client_socket);
 bool transfer_funds(int client_socket);
-bool change_password(int client_socket);
-int write_transaction_to_file(int account_number, int operation);
+bool change_customer_password(int client_socket);
+void write_transaction_to_array(int client_socket, int transaction_id, int id);
+int write_transaction_to_file(int account_number, int operation, int amount);
 
 bool customer_handler(int client_socket) {
     char read_buffer[1000], write_buffer[1000];
@@ -54,8 +60,11 @@ bool customer_handler(int client_socket) {
             case 4:
                 transfer_funds(client_socket);
                 break;
+            case 6:
+                view_transactions(client_socket, customer.account_number);
+                break;
             case 8:
-                change_password(client_socket);
+                change_customer_password(client_socket);
                 break;
             default:
                 logout(client_socket);
@@ -303,6 +312,12 @@ bool change_balance(int client_socket, int id, float amount, int operation) {
         return false;
     }
 
+    if (amount < 0) {
+        amount *= -1;
+    }
+    int transaction_id = write_transaction_to_file(id + 1, operation, amount);
+    write_transaction_to_array(client_socket, transaction_id, id);
+    close(customer_fd);
     return true;
 }
 
@@ -400,7 +415,7 @@ bool transfer_funds(int client_socket) {
     return true;
 }
 
-bool change_password(int client_socket) {
+bool change_customer_password(int client_socket) {
     char read_buffer[1000], write_buffer[1000], buffer[100];
     int read_bytes, write_bytes;
 
@@ -483,11 +498,12 @@ bool change_password(int client_socket) {
     return true;
 }
 
-int write_transaction_to_file(int account_number, int operation) {
+int write_transaction_to_file(int account_number, int operation, int amount) {
     struct Transaction new_transaction, prev_transaction;
     new_transaction.account_number = account_number;
+    new_transaction.amount = amount;
     new_transaction.operation = operation;
-    new_transaction.transaction_time = time(NULL);
+    new_transaction.time = time(NULL);
 
     int transaction_fd =
         open(TRANSACTION_FILE, O_CREAT | O_APPEND | O_RDWR, 0777);
@@ -522,7 +538,7 @@ int write_transaction_to_file(int account_number, int operation) {
             return -1;
         }
 
-        new_transaction.transaction_id = prev_transaction.transaction_id + 1;
+        new_transaction.id = prev_transaction.id + 1;
     } else {
         lock.l_len = sizeof(struct Transaction);
         lock_status = fcntl(transaction_fd, F_SETLKW, &lock);
@@ -532,7 +548,7 @@ int write_transaction_to_file(int account_number, int operation) {
             return false;
         }
 
-        new_transaction.transaction_id = 1;
+        new_transaction.id = 1;
     }
 
     offset = lseek(transaction_fd, 0, SEEK_END);
@@ -547,7 +563,72 @@ int write_transaction_to_file(int account_number, int operation) {
     lock.l_type = F_UNLCK;
     fcntl(transaction_fd, F_SETLK, &lock);
     close(transaction_fd);
-    return new_transaction.transaction_id;
+    return new_transaction.id;
+}
+
+void write_transaction_to_array(int client_socket, int transaction_id, int id) {
+    char read_buffer[1000], write_buffer[1000];
+    int read_bytes, write_bytes;
+    struct Customer local_customer;
+
+    int customer_fd = open(CUSTOMER_FILE, O_RDWR);
+    if (customer_fd == -1) {
+        perror("Open customer file\n");
+        return;
+    }
+
+    off_t offset = lseek(customer_fd, id * sizeof(struct Customer), SEEK_SET);
+    if (offset == -1) {
+        write_bytes =
+            write(client_socket, INVALID_USERID, strlen(INVALID_USERID));
+        return;
+    }
+
+    struct flock lock;
+    lock.l_type = F_WRLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_start = id * sizeof(struct Customer);
+    lock.l_len = sizeof(struct Customer);
+    lock.l_pid = getpid();
+
+    int lock_status = fcntl(customer_fd, F_SETLKW, &lock);
+    if (lock_status == -1) {
+        perror("Write lock\n");
+        close(customer_fd);
+        return;
+    }
+
+    read_bytes = read(customer_fd, &local_customer, sizeof(struct Customer));
+    if (read_bytes == -1) {
+        perror("Reading file\n");
+        close(customer_fd);
+        return;
+    }
+    local_customer.transactions[local_customer.ptr] = transaction_id;
+    local_customer.ptr = (local_customer.ptr + 1) % MAX_TRANSACTIONS;
+
+    offset = lseek(customer_fd, id * sizeof(struct Customer), SEEK_SET);
+    if (offset == -1) {
+        write_bytes =
+            write(client_socket, INVALID_USERID, strlen(INVALID_USERID));
+        return;
+    }
+
+    write_bytes = write(customer_fd, &local_customer, sizeof(struct Customer));
+    if (write_bytes == -1) {
+        perror("Write Transaction to customer file\n");
+        close(customer_fd);
+        return;
+    }
+
+    lock.l_type = F_UNLCK;
+    lock_status = fcntl(customer_fd, F_SETLK, &lock);
+    if (lock_status == -1) {
+        perror("Write lock\n");
+        close(customer_fd);
+        return;
+    }
+    close(customer_fd);
 }
 
 #endif
