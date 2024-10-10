@@ -7,6 +7,7 @@ struct Employee {
     char name[NAME_SIZE];
     char gender;
     int age;
+    int role;  // 0: Employee, 1: Manager
 
     char username[NAME_SIZE + 5];
     char password[PASSWORD_SIZE];
