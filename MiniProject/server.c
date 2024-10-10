@@ -11,7 +11,6 @@
 #include "Functions/common.h"
 #include "Functions/customer.h"
 #include "Functions/employee.h"
-#include "Functions/manager.h"
 #include "Structures/constants.h"
 
 void connection_handler(int client_socket);
@@ -98,10 +97,10 @@ void connection_handler(int client_socket) {
             customer_handler(client_socket);
             break;
         case 2:
-            employee_handler(client_socket);
+            employee_handler(client_socket, 0);
             break;
         case 3:
-            manager_handler(client_socket);
+            employee_handler(client_socket, 1);
             break;
         case 4:
             administrator_handler(client_socket);
