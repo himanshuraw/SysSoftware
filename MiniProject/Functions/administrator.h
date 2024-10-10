@@ -212,6 +212,23 @@ int add_employee(int client_socket) {
         return -1;
     }
 
+    // Role
+    write_bytes = write(client_socket, ASK_ROLE, strlen(ASK_ROLE));
+    if (write_bytes == -1) {
+        perror("Writing role while adding");
+        return -1;
+    }
+
+    memset(read_buffer, 0, sizeof(read_buffer));
+    read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
+    if (read_bytes == -1) {
+        perror("Reading role while adding");
+        return -1;
+    }
+
+    int role = atoi(read_buffer);
+    new_employee.role = role;
+
     // Username
     memset(write_buffer, 0, sizeof(write_buffer));
     strcpy(new_employee.username, new_employee.name);
