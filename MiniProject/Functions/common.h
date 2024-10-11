@@ -156,7 +156,7 @@ bool view_transactions(int client_socket, int account_number) {
         get_transaction_data(transaction_id, &transaction);
         char buffer[250];
         sprintf(buffer,
-                "%d:\n\tTransaction id : %d\n\t%s\u20B9%f\n\ttime : %s\n\n",
+                "%d:\n\tTransaction id : %d\n\t%s\u20B9%f\n\tTime : %s\n\n",
                 num, transaction_id, operation, transaction.amount,
                 ctime(&transaction.time));
         strcat(write_buffer, buffer);

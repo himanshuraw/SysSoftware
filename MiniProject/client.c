@@ -67,6 +67,7 @@ void connection_handler(int socket) {
         }
 
         memset(write_buffer, 0, sizeof(write_buffer));
+        system("clear");
         printf("%s\n", read_buffer);
         scanf("%[^\n]%*c", write_buffer);
         write_bytes = write(socket, write_buffer, sizeof(write_buffer));
