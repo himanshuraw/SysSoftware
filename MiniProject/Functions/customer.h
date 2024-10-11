@@ -6,6 +6,7 @@
 
 #include "../Structures/constants.h"
 #include "../Structures/customer.h"
+#include "../Structures/loan.h"
 #include "../Structures/transaction.h"
 
 #ifndef CUSTOMER
@@ -21,6 +22,7 @@ bool change_balance(int client_socket, int id, float amount, int operation);
 bool deposit(int client_socket);
 bool withdraw(int client_socket);
 bool transfer_funds(int client_socket);
+bool apply_for_loan(int client_socket);
 bool change_customer_password(int client_socket);
 void write_transaction_to_array(int client_socket, int transaction_id, int id);
 int write_transaction_to_file(int account_number, int operation, int amount);
@@ -59,6 +61,9 @@ bool customer_handler(int client_socket) {
                 break;
             case 4:
                 transfer_funds(client_socket);
+                break;
+            case 5:
+                apply_for_loan(client_socket);
                 break;
             case 6:
                 view_transactions(client_socket, customer.account_number);
@@ -151,6 +156,17 @@ bool login_customer(int client_socket) {
     }
 
     close(file_fd);
+
+    if (!customer.is_active) {
+        memset(write_buffer, 0, sizeof(write_buffer));
+        write_bytes = write(client_socket, INACTIVE, strlen(INACTIVE));
+        if (write_bytes == -1) {
+            perror("Writing In-active \n");
+            return false;
+        }
+        read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
+        return false;
+    }
 
     memset(write_buffer, 0, sizeof(write_buffer));
     write_bytes = write(client_socket, PASSWORD, strlen(PASSWORD));
@@ -284,7 +300,7 @@ bool change_balance(int client_socket, int id, float amount, int operation) {
             close(customer_fd);
             return false;
         }
-        // read(client_socket, read_buffer, sizeof(read_buffer));
+        read(client_socket, read_buffer, sizeof(read_buffer));
         close(customer_fd);
         return false;
     }
@@ -415,6 +431,153 @@ bool transfer_funds(int client_socket) {
     return true;
 }
 
+bool apply_for_loan(int client_socket) {
+    struct Loan new_loan, prev_loan;
+    char read_buffer[1000], write_buffer[1000], buffer[100];
+    int read_bytes, write_bytes;
+
+    if (customer.loan != -1) {
+        write_bytes =
+            write(client_socket, ALREADY_APPLIED, strlen(ALREADY_APPLIED));
+        if (write_bytes == -1) {
+            perror("Writing asking for loan amount\n");
+            return false;
+        }
+
+        read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
+        return false;
+    }
+
+    write_bytes = write(client_socket, ASK_AMOUNT, strlen(ASK_AMOUNT));
+    if (write_bytes == -1) {
+        perror("Writing asking for loan amount\n");
+        return false;
+    }
+
+    read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
+    if (read_bytes == -1) {
+        perror("Reading loan amout\n");
+        return false;
+    }
+
+    new_loan.amount = atol(read_buffer);
+    new_loan.approved = false;
+    new_loan.assigned = false;
+    new_loan.customer_account_number = customer.account_number;
+
+    int loan_fd = open(LOAN_FILE, O_CREAT | O_APPEND | O_RDWR, 0777);
+    if (loan_fd == -1) {
+        perror("Open loan file\n");
+        return false;
+    }
+
+    struct flock lock;
+    lock.l_type = F_RDLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_pid = getpid();
+
+    int lock_status;
+
+    off_t offset = lseek(loan_fd, -sizeof(struct Loan), SEEK_END);
+    if (offset >= 0) {
+        lock.l_start = offset;
+        lock.l_len = 2 * sizeof(struct Loan);
+
+        lock_status = fcntl(loan_fd, F_SETLKW, &lock);
+        if (lock_status == -1) {
+            perror("Read lock\n");
+            close(loan_fd);
+            return false;
+        }
+
+        int read_bytes = read(loan_fd, &prev_loan, sizeof(struct Loan));
+        if (read_bytes == -1) {
+            perror("Reading file\n");
+            return -1;
+        }
+
+        new_loan.id = prev_loan.id + 1;
+    } else {
+        lock.l_len = sizeof(struct Loan);
+        lock_status = fcntl(loan_fd, F_SETLKW, &lock);
+        if (lock_status == -1) {
+            perror("Read lock\n");
+            close(loan_fd);
+            return false;
+        }
+
+        new_loan.id = 1;
+    }
+
+    offset = lseek(loan_fd, 0, SEEK_END);
+    write_bytes = write(loan_fd, &new_loan, sizeof(struct Loan));
+    if (write_bytes == -1) {
+        perror("Write to loan file\n");
+        close(loan_fd);
+        return false;
+    }
+
+    lock.l_type = F_UNLCK;
+    fcntl(loan_fd, F_SETLK, &lock);
+    close(loan_fd);
+
+    int id = customer.account_number - 1;
+    int customer_fd = open(CUSTOMER_FILE, O_RDWR);
+    if (customer_fd == -1) {
+        perror("Open customer file\n");
+        return false;
+    }
+    offset = lseek(customer_fd, id * sizeof(struct Customer), SEEK_SET);
+    if (offset == -1) {
+        write_bytes =
+            write(client_socket, INVALID_USERID, strlen(INVALID_USERID));
+        return false;
+    }
+
+    lock.l_type = F_WRLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_start = id * sizeof(struct Customer);
+    lock.l_len = sizeof(struct Customer);
+    lock.l_pid = getpid();
+
+    lock_status = fcntl(customer_fd, F_SETLKW, &lock);
+    if (lock_status == -1) {
+        perror("Write lock\n");
+        close(customer_fd);
+        return false;
+    }
+
+    read_bytes = read(customer_fd, &customer, sizeof(struct Customer));
+    if (read_bytes == -1) {
+        perror("Reading file\n");
+        close(customer_fd);
+        return false;
+    }
+
+    customer.loan = new_loan.id;
+
+    offset = lseek(customer_fd, id * sizeof(struct Customer), SEEK_SET);
+    write_bytes = write(customer_fd, &customer, sizeof(struct Customer));
+    if (write_bytes == -1) {
+        perror("Write to customer file\n");
+        close(customer_fd);
+        return false;
+    }
+
+    lock.l_type = F_UNLCK;
+    lock_status = fcntl(customer_fd, F_SETLK, &lock);
+    if (lock_status == -1) {
+        perror("Write lock\n");
+        close(customer_fd);
+        return false;
+    }
+
+    write_bytes = write(client_socket, SUCCESS, sizeof(SUCCESS));
+    read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
+
+    return true;
+}
+
 bool change_customer_password(int client_socket) {
     char read_buffer[1000], write_buffer[1000], buffer[100];
     int read_bytes, write_bytes;
@@ -513,7 +676,7 @@ int write_transaction_to_file(int account_number, int operation, int amount) {
     }
 
     struct flock lock;
-    lock.l_type = F_RDLCK;
+    lock.l_type = F_WRLCK;
     lock.l_whence = SEEK_SET;
     lock.l_pid = getpid();
 
