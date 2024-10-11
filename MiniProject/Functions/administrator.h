@@ -16,6 +16,7 @@
 bool administrator_handler(int client_socket);
 bool login_administrator(int client_socket);
 int add_employee(int client_socket);
+bool modify_employee_details(int client_socket);
 
 bool administrator_handler(int client_socket) {
     char read_buffer[1000], write_buffer[1000];
@@ -43,7 +44,15 @@ bool administrator_handler(int client_socket) {
             case 1:
                 add_employee(client_socket);
                 break;
-
+            // case 2:
+            //     modify_customer_details(client_socket);
+            //     break;
+            case 3:
+                modify_employee_details(client_socket);
+                break;
+            // case 5:
+            //     change_password(client_socket);
+            //     break;
             default:
                 logout(client_socket);
                 return true;
@@ -290,6 +299,156 @@ int add_employee(int client_socket) {
     read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
 
     return new_employee.id;
+}
+
+bool modify_employee_details(int client_socket) {
+    char read_buffer[1000], write_buffer[1000], buffer[100];
+    int read_bytes, write_bytes;
+    int ID;
+    struct Employee employee;
+
+    write_bytes = write(client_socket, WHICH_USER, strlen(WHICH_USER));
+    if (write_bytes == -1) {
+        perror("Ask for username\n");
+        return false;
+    }
+
+    read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
+    if (read_bytes == -1) {
+        perror("Reading username\n");
+        return false;
+    }
+
+    memset(buffer, 0, sizeof(buffer));
+    strcpy(buffer, read_buffer);
+    strtok(buffer, "-");
+    ID = atoi(strtok(NULL, "-"));
+
+    while (true) {
+        write_bytes = write(client_socket, WHICH_DETAIL, strlen(WHICH_DETAIL));
+        if (write_bytes == -1) {
+            perror("Ask for detail to modify\n");
+            return false;
+        }
+
+        read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
+        if (read_bytes == -1) {
+            perror("Reading detail\n");
+            return false;
+        }
+        int choice = atoi(read_buffer);
+
+        switch (choice) {
+            case 1:
+                write_bytes = write(client_socket, ASK_NAME, strlen(ASK_NAME));
+                break;
+            case 2:
+                write_bytes = write(client_socket, ASK_AGE, strlen(ASK_AGE));
+                break;
+            case 3:
+                write_bytes =
+                    write(client_socket, ASK_GENDER, strlen(ASK_GENDER));
+                break;
+            default:
+                return true;
+        }
+
+        if (write_bytes == -1) {
+            perror("Ask for new detail\n");
+            return false;
+        }
+
+        read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
+        if (read_bytes == -1) {
+            perror("Reading new detail\n");
+            return false;
+        }
+
+        strcpy(buffer, read_buffer);
+
+        int employee_fd = open(EMPLOYEE_FILE, O_RDWR);
+        off_t offset =
+            lseek(employee_fd, ID * sizeof(struct Employee), SEEK_SET);
+        if (offset == -1) {
+            write_bytes =
+                write(client_socket, INVALID_USERID, strlen(INVALID_USERID));
+            return false;
+        }
+
+        struct flock lock;
+        lock.l_type = F_WRLCK;
+        lock.l_whence = SEEK_SET;
+        lock.l_start = ID * sizeof(struct Employee);
+        lock.l_len = sizeof(struct Employee);
+        lock.l_pid = getpid();
+
+        int lock_status = fcntl(employee_fd, F_SETLKW, &lock);
+        if (lock_status == -1) {
+            perror("Write lock\n");
+            close(employee_fd);
+            return false;
+        }
+
+        read_bytes = read(employee_fd, &employee, sizeof(struct Employee));
+        if (read_bytes == -1) {
+            perror("Reading file\n");
+            close(employee_fd);
+            return false;
+        }
+
+        if (employee.role != 0) {
+            // TODO : Write to client that given in is not of employee
+            memset(write_buffer, 0, sizeof(write_buffer));
+            strcpy(write_buffer, "Given data is not of an employee");
+            write_bytes =
+                write(client_socket, write_buffer, strlen(write_buffer));
+        }
+
+        switch (choice) {
+            case 1:
+                strcpy(employee.name, buffer);
+                strcpy(employee.username, buffer);
+                strcat(employee.username, "-");
+                memset(buffer, 0, sizeof(buffer));
+                sprintf(buffer, "%d", employee.id);
+                strcat(employee.username, buffer);
+                break;
+            case 2:
+                int age = atoi(buffer);
+                employee.age = age;
+                break;
+            case 3:
+                char gender = buffer[0];
+                employee.gender = gender;
+                break;
+            default:
+                close(employee_fd);
+                return true;
+        }
+
+        offset = lseek(employee_fd, ID * sizeof(struct Employee), SEEK_SET);
+        if (offset == -1) {
+            write_bytes =
+                write(client_socket, INVALID_USERID, strlen(INVALID_USERID));
+            return false;
+        }
+        write_bytes = write(employee_fd, &employee, sizeof(struct Employee));
+        if (write_bytes == -1) {
+            perror("Writing updated name and username to the file\n");
+            close(employee_fd);
+            return false;
+        }
+
+        lock.l_type = F_UNLCK;
+        lock_status = fcntl(employee_fd, F_SETLK, &lock);
+        if (lock_status == -1) {
+            perror("unlock write-lock from employee file");
+            close(employee_fd);
+            return -1;
+        }
+
+        close(employee_fd);
+    }
 }
 
 #endif
