@@ -1,6 +1,13 @@
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "../Structures/customer.h"
+#include "../Structures/employee.h"
+#include "administrator.h"
+#include "manager.h"
 
 #ifndef EMPLOYEE
 #define EMPLOYEE
@@ -17,23 +24,22 @@ bool administrator_menu(int client_socket);
 int add_customer(int client_socket);
 bool modify_customer_details(int client_socket);
 bool change_password(int client_socket);
-// bool change_name(int client_socket);
-// bool change_gender(int client_socket);
-// bool change_age(int client_socket);
+bool view_customer_transactions(int client_socket);
 
 bool employee_handler(int client_socket, int role) {
     int real_role = login_employee(client_socket);
     if (real_role != role) {
         return false;
     }
-    while (true) {
+    bool flag = true;
+    while (flag) {
         switch (role) {
             case 0:
-                bank_employee_menu(client_socket);
+                flag = bank_employee_menu(client_socket);
                 break;
 
             case 1:
-                manager_menu(client_socket);
+                flag = manager_menu(client_socket);
                 break;
 
             default:
@@ -158,12 +164,19 @@ bool bank_employee_menu(int client_socket) {
         case 2:
             modify_customer_details(client_socket);
             break;
-        case 7:
+        case 3:
+            // check_application(client_socket);
+            break;
+        case 4:
+            view_customer_transactions(client_socket);
+            // get username from client and then veiw_transactions(cs, id)
+            break;
+        case 5:
             change_password(client_socket);
             break;
         default:
             logout(client_socket);
-            return true;
+            return false;
     }
 }
 
@@ -184,8 +197,14 @@ bool manager_menu(int client_socket) {
     int choice = atoi(read_buffer);
     switch (choice) {
         case 1:
-            // add_customer(client_socket);
-            // break;
+            toggle_customer_account(client_socket, true);
+            break;
+        case 2:
+            toggle_customer_account(client_socket, false);
+            break;
+        case 3:
+            assign_loan(client_socket);
+            break;
         case 5:
             change_password(client_socket);
             break;
@@ -215,8 +234,14 @@ bool administrator_menu(int client_socket) {
         case 1:
             add_employee(client_socket);
             break;
-        case 4:
-            add_employee(client_socket);
+        case 2:
+            modify_customer_details(client_socket);
+            break;
+        case 3:
+            modify_employee_details(client_socket);
+            break;
+        case 5:
+            change_password(client_socket);
             break;
         default:
             logout(client_socket);
@@ -298,6 +323,9 @@ int add_customer(int client_socket) {
     for (int i = 0; i < MAX_TRANSACTIONS; i++) {
         new_customer.transactions[i] = 0;
     }
+
+    // Loan
+    new_customer.loan = -1;
 
     // Balance
     write_bytes = write(client_socket, ASK_BALANCE, strlen(ASK_BALANCE));
@@ -650,4 +678,28 @@ bool change_password(int client_socket) {
     return true;
 }
 
+bool view_customer_transactions(int client_socket) {
+    char read_buffer[1000], write_buffer[1000], buffer[1000];
+    int read_bytes, write_bytes;
+    int account_number;
+
+    write_bytes = write(client_socket, WHICH_USER, strlen(WHICH_USER));
+    if (write_bytes == -1) {
+        perror("Asking Username of the\n");
+        return false;
+    }
+
+    read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
+    if (read_bytes == -1) {
+        perror("Reading Username of the person whom to transfer\n");
+        return false;
+    }
+
+    memset(buffer, 0, sizeof(buffer));
+    strcpy(buffer, read_buffer);
+    strtok(buffer, "-");
+    account_number = atoi(strtok(NULL, "-"));
+
+    view_transactions(client_socket, account_number);
+}
 #endif
