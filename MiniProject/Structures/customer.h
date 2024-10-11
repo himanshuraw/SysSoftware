@@ -15,6 +15,7 @@ struct Customer {
     int account_number;  // 1 2 3 4 ....
     bool is_active;
     float balance;
+    int loan;
     int transactions[MAX_TRANSACTIONS];
     int ptr;
 };
