@@ -40,9 +40,9 @@
     "EMPLOYEE MENU\n\
 1. Add new customer\n\
 2. Modify customer details\n\
-3. Check Assigned Loan\n\
-// Reject Loan\n\
-// Accept Loan\n\
+3. View Assigned Loan\n\
+-- Reject Loan\n\
+-- Accept Loan\n\
 4. View Customer Transactions\n\
 5. Change password\n\
 6. Logout\n\
@@ -72,10 +72,10 @@
 #define WHICH_USER "Enter their username:"
 #define WHICH_DETAIL \
     "What do you want to modify:\n\
-    1: Name\n\
-    2: Age\n\
-    3: Gender\n\
-    4: Done"
+1: Name\n\
+2: Age\n\
+3: Gender\n\
+4: Done"
 
 #define USERNAME "Enter your username:"
 #define PASSWORD "Enter your password:"
@@ -87,13 +87,13 @@
 #define ASK_BALANCE "Enter Balance:"
 #define ASK_GENDER \
     "Enter gender:\n\
-    M: Male\n\
-    F: Female\n\
-    O: Others"
+M: Male\n\
+F: Female\n\
+O: Others"
 #define ASK_ROLE \
     "Enter Employee role:\n\
-    0: Bank Employee\n\
-    1: Manager\n"
+1: Bank Employee\n\
+2: Manager\n"
 #define ASK_AMOUNT "Enter the amount "
 #define ASK_LOAN_ID "\nEnter loan ID: "
 #define ASK_EMPLOYEE_ID "\nEnter Employee id: "

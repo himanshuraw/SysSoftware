@@ -243,7 +243,7 @@ int add_employee(int client_socket) {
         return -1;
     }
 
-    int role = atoi(read_buffer);
+    int role = atoi(read_buffer) - 1;
     new_employee.role = role;
 
     // Username

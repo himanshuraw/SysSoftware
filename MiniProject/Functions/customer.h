@@ -461,7 +461,7 @@ bool apply_for_loan(int client_socket) {
     }
 
     new_loan.amount = atol(read_buffer);
-    new_loan.approved = false;
+    new_loan.status = -1;
     new_loan.assigned = false;
     new_loan.customer_account_number = customer.account_number;
 

@@ -4,10 +4,10 @@
 #define LOAN
 
 struct Loan {
-    int id;
+    int id;  // 1, 2, 3 , 4
     long int amount;
     int customer_account_number;
-    bool approved;
+    int status;  // -1: pending, 0 rejected, 1 approved
     bool assigned;
 };
 
