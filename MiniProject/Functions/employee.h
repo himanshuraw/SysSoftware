@@ -25,6 +25,7 @@ int add_customer(int client_socket);
 bool modify_customer_details(int client_socket);
 bool change_password(int client_socket);
 bool view_customer_transactions(int client_socket);
+bool view_assigned_loans(int client_socket);
 
 bool employee_handler(int client_socket, int role) {
     int real_role = login_employee(client_socket);
@@ -165,11 +166,10 @@ bool bank_employee_menu(int client_socket) {
             modify_customer_details(client_socket);
             break;
         case 3:
-            // check_application(client_socket);
+            view_assigned_loans(client_socket);
             break;
         case 4:
             view_customer_transactions(client_socket);
-            // get username from client and then veiw_transactions(cs, id)
             break;
         case 5:
             change_password(client_socket);
@@ -210,7 +210,7 @@ bool manager_menu(int client_socket) {
             break;
         default:
             logout(client_socket);
-            return true;
+            return false;
     }
 }
 
@@ -701,5 +701,163 @@ bool view_customer_transactions(int client_socket) {
     account_number = atoi(strtok(NULL, "-"));
 
     view_transactions(client_socket, account_number);
+}
+
+bool view_assigned_loans(int client_socket) {
+    char read_buffer[1000], write_buffer[1000], buffer[900];
+    int read_bytes, write_bytes;
+
+    int employee_fd = open(EMPLOYEE_FILE, O_RDWR);
+    if (employee_fd == -1) {
+        perror("Open employee file");
+        return false;
+    }
+
+    int emp_id = employee.id;
+
+    off_t offset =
+        lseek(employee_fd, emp_id * sizeof(struct Employee), SEEK_SET);
+
+    struct flock lock;
+    lock.l_type = F_RDLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_start = offset;
+    lock.l_len = sizeof(struct Employee);
+    lock.l_pid = getpid();
+
+    if (fcntl(employee_fd, F_SETLKW, &lock) == -1) {
+        perror("Read lock on employee\n");
+        close(employee_fd);
+        return false;
+    }
+
+    if (read(employee_fd, &employee, sizeof(employee)) == -1) {
+        perror("Reading from employee file\n");
+        close(employee_fd);
+        return false;
+    }
+
+    int loan_fd = open(LOAN_FILE, O_RDWR);
+    if (loan_fd == -1) {
+        perror("Opening loan file\n");
+        close(employee_fd);
+        return false;
+    }
+
+    struct Loan loan;
+
+    // No need of lock as this portion will not be accessed by anyone else
+    strcpy(write_buffer, "ASSIGNED LOANS\n");
+    for (int i = 0; i < LOAN_SIZE; i++) {
+        int loan_id = employee.loans[i] - 1;
+        if (loan_id < 0) {
+            continue;
+        }
+        off_t loan_offset =
+            lseek(loan_fd, loan_id * sizeof(struct Loan), SEEK_SET);
+        read_bytes = read(loan_fd, &loan, sizeof(struct Loan));
+        if (read_bytes == -1) {
+            perror("Reading loan file\n");
+            close(loan_fd);
+            close(employee_fd);
+            return false;
+        }
+
+        memset(buffer, 0, sizeof(buffer));
+        sprintf(buffer,
+                "Loan ID: %d\nCustomer account number: %d\tAmount: %ld\n\n",
+                loan.id, loan.customer_account_number, loan.amount);
+        strcat(write_buffer, buffer);
+    }
+    memset(buffer, 0, sizeof(buffer));
+    sprintf(buffer, "Enter Loan ID to Accept or Reject");
+    strcat(write_buffer, buffer);
+    if (write(client_socket, write_buffer, sizeof(write_buffer)) == -1) {
+        perror("Writing loans to client\n");
+        close(loan_fd);
+        close(employee_fd);
+        return false;
+    }
+
+    if (read(client_socket, read_buffer, sizeof(read_buffer)) == -1) {
+        perror("Reading loans ID from client\n");
+        close(loan_fd);
+        close(employee_fd);
+        return false;
+    }
+
+    int ID = atoi(read_buffer) - 1;
+    if (lseek(loan_fd, ID * sizeof(struct Loan), SEEK_SET) == -1) {
+        perror("lseek loan\n");
+        close(loan_fd);
+        close(employee_fd);
+        return false;
+    }
+    if (read(loan_fd, &loan, sizeof(struct Loan)) == -1) {
+        perror("Read loan\n");
+        close(loan_fd);
+        close(employee_fd);
+        return false;
+    }
+
+    memset(write_buffer, 0, sizeof(write_buffer));
+    sprintf(write_buffer, "Choose\n1: Reject\t2:Accept");
+    if (write(client_socket, write_buffer, sizeof(write_buffer)) == -1) {
+        perror("Writing loans to client\n");
+        close(loan_fd);
+        close(employee_fd);
+        return false;
+    }
+
+    memset(read_buffer, 0, sizeof(read_buffer));
+    if (read(client_socket, read_buffer, sizeof(read_buffer)) == -1) {
+        perror("Reading loans ID from client\n");
+        close(loan_fd);
+        close(employee_fd);
+        return false;
+    }
+    int choice = atoi(read_buffer);
+    loan.status = choice - 1;
+
+    if (lseek(loan_fd, ID * sizeof(struct Loan), SEEK_SET) == -1) {
+        perror("lseek loan\n");
+        close(loan_fd);
+        close(employee_fd);
+        return false;
+    }
+
+    if (write(loan_fd, &loan, sizeof(struct Loan)) == -1) {
+        perror("Writing into loan file\n");
+        close(loan_fd);
+        close(employee_fd);
+        return false;
+    }
+
+    close(loan_fd);
+
+    int i = 0;
+    for (; i < LOAN_SIZE; i++) {
+        if (employee.loans[i] == ID + 1) {
+            break;
+        }
+    }
+
+    employee.loans[i] = employee.loans[employee.ptr];
+    employee.loans[employee.ptr] = -1;
+
+    lseek(employee_fd, emp_id * sizeof(struct Employee), SEEK_SET);
+
+    if (write(employee_fd, &employee, sizeof(struct Employee)) == -1) {
+        perror("Writing into employee file\n");
+        close(employee_fd);
+        return false;
+    }
+
+    close(employee_fd);
+    if (write(client_socket, SUCCESS, sizeof(SUCCESS)) == -1) {
+        return false;
+    }
+    read(client_socket, read_buffer, sizeof(read_buffer));
+    return true;
 }
 #endif

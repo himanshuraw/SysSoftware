@@ -283,7 +283,7 @@ bool assign_loan(int client_socket) {
         close(loan_fd);
         return false;
     }
-    employee.loans[(employee.ptr) % LOAN_SIZE] = ID;
+    employee.loans[(employee.ptr) % LOAN_SIZE] = ID + 1;
     employee.ptr += 1;
 
     if (lseek(employee_fd, emp_offset, SEEK_SET) == -1) {
@@ -330,15 +330,15 @@ bool assign_loan(int client_socket) {
         close(loan_fd);
         return false;
     }
+    close(loan_fd);
 
-    if (write(client_socket, SUCCESS, strlen(SUCCESS))) {
+    if (write(client_socket, SUCCESS, strlen(SUCCESS)) == -1) {
         perror("Writing to client\n");
         close(loan_fd);
         return false;
     }
 
     read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
-    close(loan_fd);
     return true;
 }
 
