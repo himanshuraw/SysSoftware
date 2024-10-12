@@ -221,6 +221,14 @@ int add_employee(int client_socket) {
         return -1;
     }
 
+    // Loan
+    for (int i = 0; i < LOAN_SIZE; i++) {
+        new_employee.loans[i] = -1;
+    }
+
+    // ptr
+    new_employee.ptr = 0;
+
     // Role
     write_bytes = write(client_socket, ASK_ROLE, strlen(ASK_ROLE));
     if (write_bytes == -1) {
