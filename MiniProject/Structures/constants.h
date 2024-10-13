@@ -4,7 +4,7 @@
 #define NAME_SIZE 30
 #define PASSWORD_SIZE 35
 #define MAX_TRANSACTIONS 10
-#define FEEDBACK_SIZE 10
+#define FEEDBACK_SIZE 100
 #define LOAN_SIZE 10
 #define SALT "10"
 
@@ -119,6 +119,7 @@ O: Others"
 #define EMPLOYEE_FILE "./Records/employee.txt"
 #define TRANSACTION_FILE "./Records/transaction.txt"
 #define LOAN_FILE "./Records/loan.txt"
+#define FEEDBACK_FILE "./Records/feedback.txt"
 
 #define TRANSACTION_DETAIL "Transaction details:\n"
 

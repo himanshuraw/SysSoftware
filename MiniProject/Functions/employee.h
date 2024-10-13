@@ -205,6 +205,9 @@ bool manager_menu(int client_socket) {
         case 3:
             assign_loan(client_socket);
             break;
+        case 4:
+            review_feedbacks(client_socket);
+            break;
         case 5:
             change_password(client_socket);
             break;

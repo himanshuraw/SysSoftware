@@ -6,6 +6,7 @@
 
 #include "../Structures/constants.h"
 #include "../Structures/customer.h"
+#include "../Structures/feedback.h"
 #include "../Structures/loan.h"
 #include "../Structures/transaction.h"
 
@@ -26,6 +27,7 @@ bool apply_for_loan(int client_socket);
 bool change_customer_password(int client_socket);
 void write_transaction_to_array(int client_socket, int transaction_id, int id);
 int write_transaction_to_file(int account_number, int operation, int amount);
+bool add_feedback(int client_socket);
 
 bool customer_handler(int client_socket) {
     char read_buffer[1000], write_buffer[1000];
@@ -67,6 +69,9 @@ bool customer_handler(int client_socket) {
                 break;
             case 6:
                 view_transactions(client_socket, customer.account_number);
+                break;
+            case 7:
+                add_feedback(client_socket);
                 break;
             case 8:
                 change_customer_password(client_socket);
@@ -472,7 +477,7 @@ bool apply_for_loan(int client_socket) {
     }
 
     struct flock lock;
-    lock.l_type = F_RDLCK;
+    lock.l_type = F_WRLCK;
     lock.l_whence = SEEK_SET;
     lock.l_pid = getpid();
 
@@ -575,6 +580,92 @@ bool apply_for_loan(int client_socket) {
     write_bytes = write(client_socket, SUCCESS, sizeof(SUCCESS));
     read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
 
+    return true;
+}
+
+bool add_feedback(int client_socket) {
+    struct Feedback new_feedback, prev_feedback;
+    char read_buffer[1000], write_buffer[1000], buffer[100];
+    int read_bytes, write_bytes;
+
+    sprintf(write_buffer, "FEEDBACK\nWrite your feedback here:\n");
+    write_bytes = write(client_socket, write_buffer, sizeof(write_buffer));
+    if (write_bytes == -1) {
+        perror("Writing to the client, Asking for feedback\n");
+        return false;
+    }
+
+    read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
+    if (read_bytes == -1) {
+        perror("Reading feedback\n");
+        return false;
+    }
+
+    strcpy(new_feedback.text, read_buffer);
+    new_feedback.reviewed = false;
+
+    int feedback_fd = open(FEEDBACK_FILE, O_CREAT | O_APPEND | O_RDWR, 0777);
+    if (feedback_fd == -1) {
+        perror("Open feedback file\n");
+        return false;
+    }
+
+    struct flock lock;
+    lock.l_type = F_WRLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_pid = getpid();
+
+    int lock_status;
+
+    off_t offset = lseek(feedback_fd, -sizeof(struct Feedback), SEEK_END);
+    if (offset >= 0) {
+        lock.l_start = offset;
+        lock.l_len = 2 * sizeof(struct Feedback);
+
+        lock_status = fcntl(feedback_fd, F_SETLKW, &lock);
+        if (lock_status == -1) {
+            perror("Read lock\n");
+            close(feedback_fd);
+            return false;
+        }
+
+        int read_bytes =
+            read(feedback_fd, &prev_feedback, sizeof(struct Feedback));
+        if (read_bytes == -1) {
+            perror("Reading file\n");
+            return -1;
+        }
+        new_feedback.id = prev_feedback.id + 1;
+    } else {
+        lock.l_len = sizeof(struct Feedback);
+        lock_status = fcntl(feedback_fd, F_SETLKW, &lock);
+        if (lock_status == -1) {
+            perror("Read lock\n");
+            close(feedback_fd);
+            return false;
+        }
+
+        new_feedback.id = 0;
+    }
+    offset = lseek(feedback_fd, 0, SEEK_END);
+    write_bytes = write(feedback_fd, &new_feedback, sizeof(struct Feedback));
+    if (write_bytes == -1) {
+        perror("Write to feedback file\n");
+        close(feedback_fd);
+        return false;
+    }
+
+    lock.l_type = F_UNLCK;
+    fcntl(feedback_fd, F_SETLK, &lock);
+
+    sprintf(write_buffer, "Feedback Send Successfully");
+    if (write(client_socket, write_buffer, sizeof(write_buffer)) == -1) {
+        perror("Success message to client\n");
+        return false;
+    }
+
+    read(client_socket, read_buffer, sizeof(read_buffer));
+    close(feedback_fd);
     return true;
 }
 

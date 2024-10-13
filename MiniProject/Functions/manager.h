@@ -11,6 +11,7 @@
 
 bool toggle_customer_account(int client_socket, bool activate);
 bool assign_loan(int client_socket);
+bool review_feedbacks(int client_socket);
 
 bool toggle_customer_account(int client_socket, bool activate) {
     char read_buffer[1000], write_buffer[1000], buffer[1000];
@@ -334,7 +335,6 @@ bool assign_loan(int client_socket) {
 
     if (write(client_socket, SUCCESS, strlen(SUCCESS)) == -1) {
         perror("Writing to client\n");
-        close(loan_fd);
         return false;
     }
 
@@ -342,4 +342,89 @@ bool assign_loan(int client_socket) {
     return true;
 }
 
+bool review_feedbacks(int client_socket) {
+    char read_buffer[1000], write_buffer[1000], buffer[1000];
+    int read_bytes, write_bytes;
+    struct Feedback feedback;
+
+    int feedback_fd = open(FEEDBACK_FILE, O_RDWR);
+
+    int i = 0;
+    do {
+        read_bytes = read(feedback_fd, &feedback, sizeof(struct Feedback));
+        if (read_bytes == -1) {
+            perror("Reading file\n");
+            close(feedback_fd);
+            return false;
+        }
+        if (read_bytes == 0) break;
+        if (!feedback.reviewed) {
+            memset(buffer, 0, sizeof(buffer));
+            sprintf(buffer, "ID %d : %s\n", feedback.id, feedback.text);
+            if (i == 0) {
+                strcpy(write_buffer, buffer);
+            } else {
+                strcat(write_buffer, buffer);
+            }
+            i++;
+        }
+    } while (read_bytes && strlen(buffer) < 850);
+    if (i == 0) {
+        memset(write_buffer, 0, sizeof(write_buffer));
+        sprintf(write_buffer, "No new feedback to review\n");
+        if (write(client_socket, write_buffer, sizeof(write_buffer)) == -1) {
+            perror("Writing to client\n");
+            close(feedback_fd);
+            return false;
+        }
+
+        read(client_socket, read_buffer, sizeof(read_buffer));
+        return true;
+    }
+
+    strcat(write_buffer, "Enter the ID of Feedback to mark it as reviewed");
+    write_bytes = write(client_socket, write_buffer, sizeof(write_buffer));
+    if (write_bytes == -1) {
+        perror("Writing to client\n");
+        close(feedback_fd);
+        return false;
+    }
+
+    read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
+    if (read_bytes == -1) {
+        perror("Read from client\n");
+        close(feedback_fd);
+        return false;
+    }
+
+    int ID = atoi(read_buffer);
+    off_t offset = lseek(feedback_fd, ID * sizeof(struct Feedback), SEEK_SET);
+    read_bytes = read(feedback_fd, &feedback, sizeof(struct Feedback));
+    if (read_bytes == -1) {
+        perror("Read from Feedback file\n");
+        close(feedback_fd);
+        return false;
+    }
+
+    feedback.reviewed = true;
+
+    lseek(feedback_fd, ID * sizeof(struct Feedback), SEEK_SET);
+
+    if (write(feedback_fd, &feedback, sizeof(struct Feedback)) == -1) {
+        perror("Write to Feedback file");
+        close(feedback_fd);
+        return false;
+    }
+
+    close(feedback_fd);
+
+    if (write(client_socket, SUCCESS, strlen(SUCCESS)) == -1) {
+        perror("Writing to client\n");
+        close(feedback_fd);
+        return false;
+    }
+
+    read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
+    return true;
+}
 #endif

@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 #include "constants.h"
 #ifndef FEEDBACK
 #define FEEDBACK
