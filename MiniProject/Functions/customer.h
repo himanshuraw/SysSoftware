@@ -77,7 +77,6 @@ bool customer_handler(int client_socket) {
                 change_customer_password(client_socket);
                 break;
             default:
-                logout(client_socket);
                 return false;
         }
     }

@@ -123,15 +123,16 @@ O: Others"
 
 #define TRANSACTION_DETAIL "Transaction details:\n"
 
-#define ADMINISTRATOR_USERNAME "Himanshu"
+#define ADMINISTRATOR_NAME "Himanshu"
+#define ADMINISTRATOR_USERNAME "Himanshu-0"
 #define ADMINISTRATOR_PASSWORD "10vrzSg43HfWI"  // 123456
+#define ADMINISTRATOR_PASSWORD_ "123456"
 
 #define MAX_REACHED \
     "Employee reached maximum capacity. Try with some other Employee"
 #define ALREADY_APPLIED " You have already applied for loan"
 #define INACTIVE "Your account is in-active at the moment"
 #define TO_PROCEED "Press any key to proceed (Enter to logout)"
-#define LOGOUT "Logging off! Have a nice day.$"
-#define EXIT "Exiting from the server.$"
+#define EXIT "Exiting from the server. $"
 
 #endif

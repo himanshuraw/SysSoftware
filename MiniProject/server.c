@@ -42,6 +42,8 @@ int main() {
         return 1;
     }
 
+    create_administrator();
+
     while (true) {
         socklen_t client_address_size = sizeof(client_address);
         int client_socket =
@@ -74,39 +76,42 @@ void connection_handler(int client_socket) {
     int read_bytes, write_bytes;
     int choice;
 
-    write_bytes = write(client_socket, INITIAL_PROMPT, strlen(INITIAL_PROMPT));
-    if (write_bytes == -1) {
-        perror("Sending initial prompt\n");
-        return;
-    }
-    memset(read_buffer, 0, sizeof(read_buffer));
+    while (true) {
+        write_bytes =
+            write(client_socket, INITIAL_PROMPT, strlen(INITIAL_PROMPT));
+        if (write_bytes == -1) {
+            perror("Sending initial prompt\n");
+            return;
+        }
+        memset(read_buffer, 0, sizeof(read_buffer));
 
-    read_bytes = read(client_socket, &read_buffer, sizeof(read_buffer));
-    if (read_bytes == -1) {
-        perror("Reading choice\n");
-        return;
-    }
-    if (read_bytes == 0) {
-        printf("No data from client\n");
-    }
+        read_bytes = read(client_socket, &read_buffer, sizeof(read_buffer));
+        if (read_bytes == -1) {
+            perror("Reading choice\n");
+            return;
+        }
+        if (read_bytes == 0) {
+            printf("No data from client\n");
+        }
 
-    choice = atoi(read_buffer);
+        choice = atoi(read_buffer);
 
-    switch (choice) {
-        case 1:
-            customer_handler(client_socket);
-            break;
-        case 2:
-            employee_handler(client_socket, 0);
-            break;
-        case 3:
-            employee_handler(client_socket, 1);
-            break;
-        case 4:
-            administrator_handler(client_socket);
-            break;
-        default:
-            exit_handler(client_socket);
-            break;
+        switch (choice) {
+            case 1:
+                customer_handler(client_socket);
+                break;
+            case 2:
+                employee_handler(client_socket, 0);
+                break;
+            case 3:
+                employee_handler(client_socket, 1);
+                break;
+            case 4:
+                employee_handler(client_socket, 2);
+                break;
+            default:
+                exit_handler(client_socket);
+                return;
+        }
     }
 }

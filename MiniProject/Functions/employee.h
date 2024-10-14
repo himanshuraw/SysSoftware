@@ -15,7 +15,7 @@
 struct Employee employee;
 
 bool employee_handler(int client_socket, int role);
-int login_employee(int client_socket);
+int login_employee(int client_socket, int role);
 
 bool bank_employee_menu(int client_socket);
 bool manager_menu(int client_socket);
@@ -28,7 +28,7 @@ bool view_customer_transactions(int client_socket);
 bool view_assigned_loans(int client_socket);
 
 bool employee_handler(int client_socket, int role) {
-    int real_role = login_employee(client_socket);
+    int real_role = login_employee(client_socket, role);
     if (real_role != role) {
         return false;
     }
@@ -43,13 +43,16 @@ bool employee_handler(int client_socket, int role) {
                 flag = manager_menu(client_socket);
                 break;
 
+            case 2:
+                flag = administrator_menu(client_socket);
+                break;
             default:
                 break;
         }
     }
 }
 
-int login_employee(int client_socket) {
+int login_employee(int client_socket, int role) {
     char read_buffer[1000], write_buffer[1000], buffer[1000];
     int read_bytes, write_bytes;
     int ID;
@@ -57,7 +60,9 @@ int login_employee(int client_socket) {
     memset(read_buffer, 0, sizeof(read_buffer));
     memset(write_buffer, 0, sizeof(write_buffer));
 
-    strcpy(write_buffer, EMPLOYEE_LOGIN_PAGE);
+    role == 0   ? strcpy(write_buffer, EMPLOYEE_LOGIN_PAGE)
+    : role == 1 ? strcpy(write_buffer, MANAGER_LOGIN_PAGE)
+                : strcpy(write_buffer, ADMINISTRATOR_LOGIN_PAGE);
     strcat(write_buffer, USERNAME);
 
     write_bytes = write(client_socket, write_buffer, strlen(write_buffer));
@@ -175,7 +180,6 @@ bool bank_employee_menu(int client_socket) {
             change_password(client_socket);
             break;
         default:
-            logout(client_socket);
             return false;
     }
 }
@@ -212,7 +216,6 @@ bool manager_menu(int client_socket) {
             change_password(client_socket);
             break;
         default:
-            logout(client_socket);
             return false;
     }
 }
@@ -243,12 +246,14 @@ bool administrator_menu(int client_socket) {
         case 3:
             modify_employee_details(client_socket);
             break;
+        case 4:
+            manage_role(client_socket);
+            break;
         case 5:
             change_password(client_socket);
             break;
         default:
-            logout(client_socket);
-            return true;
+            return false;
     }
 }
 
@@ -741,12 +746,22 @@ bool view_assigned_loans(int client_socket) {
     }
 
     int loan_fd = open(LOAN_FILE, O_RDWR);
+
     if (loan_fd == -1) {
+        memset(write_buffer, 0, sizeof(write_buffer));
+        sprintf(write_buffer, "No new loan assigned\n");
+        if (write(client_socket, write_buffer, sizeof(write_buffer)) == -1) {
+            perror("Writing to client\n");
+            close(employee_fd);
+            return false;
+        }
+
+        read(client_socket, read_buffer, sizeof(read_buffer));
+
         perror("Opening loan file\n");
         close(employee_fd);
-        return false;
+        return true;
     }
-
     struct Loan loan;
 
     // No need of lock as this portion will not be accessed by anyone else

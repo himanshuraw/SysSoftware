@@ -17,6 +17,7 @@ bool administrator_handler(int client_socket);
 bool login_administrator(int client_socket);
 int add_employee(int client_socket);
 bool modify_employee_details(int client_socket);
+bool manage_role(int client_socket);
 
 bool administrator_handler(int client_socket) {
     char read_buffer[1000], write_buffer[1000];
@@ -50,9 +51,12 @@ bool administrator_handler(int client_socket) {
             case 3:
                 modify_employee_details(client_socket);
                 break;
-            // case 5:
-            //     change_password(client_socket);
-            //     break;
+            case 4:
+                manage_role(client_socket);
+                break;
+                // case 5:
+                // manage_role(client_socket);
+                // break;
             default:
                 logout(client_socket);
                 return true;
@@ -459,4 +463,143 @@ bool modify_employee_details(int client_socket) {
     }
 }
 
+bool manage_role(int client_socket) {
+    char read_buffer[1000], write_buffer[1000], buffer[1000];
+    int read_bytes, write_bytes;
+
+    struct Employee employee;
+
+    int employee_fd = open(EMPLOYEE_FILE, O_RDWR);
+
+    if (employee_fd == -1) {
+        perror("Open employee file\n");
+        return false;
+    }
+
+    struct flock lock;
+    lock.l_type = F_RDLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_pid = getpid();
+
+    int lock_status = fcntl(employee_fd, F_SETLKW, &lock);
+    if (lock_status == -1) {
+        perror("Write lock\n");
+        close(employee_fd);
+        return false;
+    }
+
+    off_t offset = lseek(employee_fd, sizeof(struct Employee), SEEK_SET);
+    int i = 0;
+    do {
+        read_bytes = read(employee_fd, &employee, sizeof(struct Employee));
+        if (read_bytes == -1) {
+            perror("Reading file\n");
+            close(employee_fd);
+            return false;
+        }
+
+        if (read_bytes == 0) break;
+
+        char role[30];
+        switch (employee.role) {
+            case 0:
+                strcpy(role, "Employee");
+                break;
+            case 1:
+                strcpy(role, "Manager");
+                break;
+            default:
+                strcpy(role, "Others(Administrator)");
+                break;
+        }
+
+        memset(buffer, 0, sizeof(buffer));
+        sprintf(buffer, "ID: %d\nName: %s\tRole: %s\n\n", employee.id,
+                employee.name, role);
+
+        i == 0 ? strcpy(write_buffer, buffer) : strcat(write_buffer, buffer);
+        i++;
+    } while (read_bytes && strlen(buffer) < 900);
+
+    if (i == 0) {
+        memset(write_buffer, 0, sizeof(write_buffer));
+        sprintf(write_buffer, "You don't have any employee in your bank\n");
+        if (write(client_socket, write_buffer, sizeof(write_buffer)) == -1) {
+            perror("Writing to client\n");
+            close(employee_fd);
+            return false;
+        }
+
+        read(client_socket, read_buffer, sizeof(read_buffer));
+        return true;
+    }
+
+    strcat(write_buffer,
+           "Enter ID of the employee whom you wish to change the the role");
+    write_bytes = write(client_socket, write_buffer, sizeof(write_buffer));
+    if (write_bytes == -1) {
+        perror("Writing to client\n");
+        close(employee_fd);
+        return false;
+    }
+
+    read_bytes = read(client_socket, read_buffer, sizeof(read_buffer));
+    if (read_bytes == -1) {
+        perror("Read from client\n");
+        close(employee_fd);
+        return false;
+    }
+
+    int ID = atoi(read_buffer);
+    offset = lseek(employee_fd, ID * sizeof(struct Employee), SEEK_SET);
+
+    lock.l_type = F_WRLCK;
+    lock.l_start = offset;
+    lock.l_len = sizeof(struct Employee);
+
+    if (fcntl(employee_fd, F_SETLKW, &lock) == -1) {
+        perror("Write lock\n");
+        close(employee_fd);
+        return false;
+    }
+
+    read_bytes = read(employee_fd, &employee, sizeof(struct Employee));
+    if (read_bytes == -1) {
+        perror("Read from Employee file\n");
+        close(employee_fd);
+        return false;
+    }
+
+    employee.role = (employee.role + 1) % 2;
+
+    if (lseek(employee_fd, offset, SEEK_SET) == -1) {
+        perror("lseek in employee file");
+        close(employee_fd);
+        return false;
+    }
+
+    write_bytes = write(employee_fd, &employee, sizeof(struct Employee));
+    if (write_bytes == -1) {
+        perror("Writing to employee file\n");
+        close(employee_fd);
+        return false;
+    }
+
+    lock.l_type = F_UNLCK;
+    if (fcntl(employee_fd, F_SETLK, &lock) == -1) {
+        perror("Write lock employee\n");
+        close(employee_fd);
+        return false;
+    }
+
+    close(employee_fd);
+
+    if (write(client_socket, SUCCESS, strlen(SUCCESS)) == -1) {
+        perror("Write success message to client\n");
+        return false;
+    }
+
+    read(client_socket, read_buffer, sizeof(read_buffer));
+    return true;
+}
 #endif

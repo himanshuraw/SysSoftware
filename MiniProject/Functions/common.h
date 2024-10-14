@@ -14,11 +14,42 @@
 #ifndef COMMON
 #define COMMON
 
+bool create_administrator();
 bool get_transaction_data(int transaction_id,
                           struct Transaction *ptr_transaction);
 bool view_transactions(int client_socket, int account_number);
 bool logout(int client_socket);
 bool exit_handler(int client_socket);
+
+bool create_administrator() {
+    int fd = open(EMPLOYEE_FILE, O_CREAT | O_WRONLY | O_APPEND, 0777);
+    if (fd == -1) {
+        perror("Openning file to create administrator\n");
+        return false;
+    }
+
+    struct Employee administrator;
+
+    if (lseek(fd, -sizeof(struct Employee), SEEK_END) >= 0) {
+        return true;
+    }
+
+    char password[1000];
+    strcpy(password, crypt(ADMINISTRATOR_PASSWORD_, SALT));
+
+    strcpy(administrator.name, ADMINISTRATOR_NAME);
+    strcpy(administrator.username, ADMINISTRATOR_USERNAME);
+    strcpy(administrator.password, password);
+    administrator.age = 23;
+    administrator.gender = 'M';
+    administrator.id = 0;
+    administrator.role = 2;
+
+    if (write(fd, &administrator, sizeof(administrator)) == -1) {
+        perror("Writing administrator to the file\n");
+        return false;
+    }
+}
 
 bool get_transaction_data(int transaction_id,
                           struct Transaction *ptr_transaction) {
@@ -169,15 +200,6 @@ bool view_transactions(int client_socket, int account_number) {
 
     read_bytes =
         read(client_socket, read_buffer, sizeof(read_buffer));  // Dummy read
-}
-
-bool logout(int client_socket) {
-    int write_bytes = write(client_socket, LOGOUT, strlen(LOGOUT));
-    if (write_bytes == -1) {
-        perror("Writing logout to client\n");
-        return false;
-    }
-    return true;
 }
 
 bool exit_handler(int client_socket) {

@@ -140,11 +140,10 @@ bool assign_loan(int client_socket) {
             sprintf(buffer,
                     "Loan ID: %d\nCustomer account number: %d\tAmount: %ld\n\n",
                     loan.id, loan.customer_account_number, loan.amount);
-            if (i == 0) {
-                strcpy(write_buffer, buffer);
-            } else {
-                strcat(write_buffer, buffer);
-            }
+
+            i == 0 ? strcpy(write_buffer, buffer)
+                   : strcat(write_buffer, buffer);
+
             i++;
         }
     } while (read_bytes && strlen(buffer) < 900);
@@ -241,7 +240,7 @@ bool assign_loan(int client_socket) {
         return false;
     }
 
-    read_bytes = read(employee_fd, &employee, sizeof(employee));
+    read_bytes = read(employee_fd, &employee, sizeof(struct Employee));
     if (read_bytes == -1) {
         perror("Read from employee file");
         close(employee_fd);
@@ -303,8 +302,9 @@ bool assign_loan(int client_socket) {
     }
 
     emp_lock.l_type = F_UNLCK;
-    if (fcntl(loan_fd, F_SETLK, &emp_lock) == -1) {
+    if (fcntl(employee_fd, F_SETLK, &emp_lock) == -1) {
         perror("Write lock employee\n");
+        close(employee_fd);
         close(loan_fd);
         return false;
     }
@@ -348,7 +348,18 @@ bool review_feedbacks(int client_socket) {
     struct Feedback feedback;
 
     int feedback_fd = open(FEEDBACK_FILE, O_RDWR);
+    if (feedback_fd == -1) {
+        memset(write_buffer, 0, sizeof(write_buffer));
+        sprintf(write_buffer, "No new feedback to review\n");
+        if (write(client_socket, write_buffer, sizeof(write_buffer)) == -1) {
+            perror("Writing to client\n");
+            close(feedback_fd);
+            return false;
+        }
 
+        read(client_socket, read_buffer, sizeof(read_buffer));
+        return true;
+    }
     int i = 0;
     do {
         read_bytes = read(feedback_fd, &feedback, sizeof(struct Feedback));
