@@ -1,8 +1,9 @@
-// #include <sys/ipc.h>
-// #include <sys/sem.h>
 #include <fcntl.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+#include <sys/types.h>
 
 #include "../Structures/constants.h"
 #include "../Structures/customer.h"
@@ -14,7 +15,8 @@
 #define CUSTOMER
 
 struct Customer customer;
-// int sem_identifier;
+int sem_id;
+struct sembuf sem_operation;
 
 bool customer_handler(int client_socket);
 bool login_customer(int client_socket);
@@ -35,6 +37,10 @@ bool customer_handler(int client_socket) {
     if (!login_customer(client_socket)) {
         return false;
     }
+
+    sem_id = init_semphore(customer.account_number, CUSTOMER_FILE);
+
+    lock(&sem_operation, sem_id);
     printf("working with customer\n");
 
     while (true) {
@@ -77,6 +83,7 @@ bool customer_handler(int client_socket) {
                 change_customer_password(client_socket);
                 break;
             default:
+                unlock(&sem_operation, sem_id);
                 return false;
         }
     }

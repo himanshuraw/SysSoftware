@@ -32,6 +32,8 @@ bool employee_handler(int client_socket, int role) {
     if (real_role != role) {
         return false;
     }
+    sem_id = init_semphore(customer.account_number, CUSTOMER_FILE);
+    lock(&sem_operation, sem_id);
     bool flag = true;
     while (flag) {
         switch (role) {
@@ -47,6 +49,7 @@ bool employee_handler(int client_socket, int role) {
                 flag = administrator_menu(client_socket);
                 break;
             default:
+                unlock(&sem_operation, sem_id);
                 break;
         }
     }
@@ -180,6 +183,7 @@ bool bank_employee_menu(int client_socket) {
             change_password(client_socket);
             break;
         default:
+            unlock(&sem_operation, sem_id);
             return false;
     }
 }
@@ -216,6 +220,7 @@ bool manager_menu(int client_socket) {
             change_password(client_socket);
             break;
         default:
+            unlock(&sem_operation, sem_id);
             return false;
     }
 }
@@ -253,6 +258,7 @@ bool administrator_menu(int client_socket) {
             change_password(client_socket);
             break;
         default:
+            unlock(&sem_operation, sem_id);
             return false;
     }
 }

@@ -125,8 +125,7 @@ O: Others"
 
 #define ADMINISTRATOR_NAME "Himanshu"
 #define ADMINISTRATOR_USERNAME "Himanshu-0"
-#define ADMINISTRATOR_PASSWORD "10vrzSg43HfWI"  // 123456
-#define ADMINISTRATOR_PASSWORD_ "123456"
+#define ADMINISTRATOR_PASSWORD "123456"
 
 #define MAX_REACHED \
     "Employee reached maximum capacity. Try with some other Employee"
