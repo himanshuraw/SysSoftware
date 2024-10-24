@@ -26,8 +26,7 @@ int main() {
     address.sin_port = htons(3000);
 
     /*````````````````` Connenting to Server ```````````````````*/
-    int connection =
-        connect(sock, (struct sockaddr *)&address, sizeof(address));
+    int connection = connect(sock, (struct sockaddr*)&address, sizeof(address));
     if (connection == -1) {
         perror("Connection");
         close(sock);
@@ -61,7 +60,10 @@ void connection_handler(int socket) {
             return;
         }
         if (strchr(read_buffer, '$') != NULL) {
-            strncpy(buffer, read_buffer, sizeof(read_buffer) - 2);
+            char* match = strchr(read_buffer, '$');
+            int len = match - read_buffer;
+            memcpy(buffer, read_buffer, len - 1);
+            buffer[len - 1] = '\0';
             printf("%s\n", buffer);
             break;
         }
