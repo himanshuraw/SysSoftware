@@ -88,7 +88,8 @@ size of a pipe (circular buffer).
 a. rewrite the ticket number creation program using semaphore
 * protect shared memory from concurrent write access
 * protect multiple pseudo resources ( may be two) using counting semaphore
-* remove the created semaphore33. Write a program to communicate between two machines using socket.
+* remove the created semaphore
+33. Write a program to communicate between two machines using socket.
 34. Write a program to create a concurrent server.
 * use fork
 * use pthread_create
