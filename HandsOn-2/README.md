@@ -85,7 +85,7 @@ size of a pipe (circular buffer).
 * create a binary semaphore
 * create a counting semaphore
 32. Write a program to implement semaphore to protect any critical section.
-a. rewrite the ticket number creation program using semaphore
+* rewrite the ticket number creation program using semaphore
 * protect shared memory from concurrent write access
 * protect multiple pseudo resources ( may be two) using counting semaphore
 * remove the created semaphore
